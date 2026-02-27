@@ -6,31 +6,31 @@ struct GuideView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("Guide", systemImage: "figure.fencing")
-                .font(.largeTitle.weight(.bold))
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Text("Fencing Fundamentals & App Use")
-                .font(.title3.weight(.medium))
+                .font(.title2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView {
                 VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 22) {
                         Text("Welcome to En Garde. This application is designed to analyze your fencing posture in real time. We cover the basics: fencing is a combat sport with defined lanes, timing, distance control, and the en garde stance as your core foundation.")
-                            .font(.body)
+                            .font(.title3)
                             .foregroundStyle(.secondary)
 
-                        HStack(spacing: 12) {
+                        HStack(spacing: 16) {
                             guideImageCard(resourceName: "template", label: "Fencing Illustration")
                             guideImageCard(resourceName: "swords", label: "Modern Foil Fencing")
                         }
 
                         Text("Our algorithm tracks body alignment and key joints to validate posture quality. As you progress, you'll receive immediate visual feedback for corridor positioning, stance balance, and en garde consistency.")
-                            .font(.body)
+                            .font(.title3)
                             .foregroundStyle(.secondary)
 
-                        HStack(spacing: 12) {
+                        HStack(spacing: 16) {
                             mockupCard(resourceName: "template_vertical", label: "Posture Check Template")
                             mockupCard(resourceName: "template_vertical", label: "Posture Check Template usage")
                         }
@@ -70,8 +70,8 @@ struct GuideView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    .padding(18)
-                    .frame(maxWidth: 760, alignment: .leading)
+                    .padding(22)
+                    .frame(maxWidth: 860, alignment: .leading)
                     .background(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .fill(.ultraThinMaterial)
@@ -82,8 +82,9 @@ struct GuideView: View {
                     )
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 6)
+                .padding(.bottom, 20)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scrollIndicators(.hidden)
         }
     }
@@ -93,7 +94,7 @@ struct GuideView: View {
             Image(resourceName, bundle: .module)
                 .resizable()
                 .scaledToFill()
-                .frame(height: 130)
+                .frame(height: 185)
                 .frame(maxWidth: .infinity)
                 .clipped()
                 .overlay(
@@ -121,7 +122,7 @@ struct GuideView: View {
                     .strokeBorder(.green.opacity(0.45), lineWidth: 1)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 120)
+            .frame(height: 170)
 
             Text(label)
                 .font(.caption)
