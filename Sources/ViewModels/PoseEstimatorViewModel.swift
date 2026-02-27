@@ -68,6 +68,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         self.audioPlayerViewModel = audioPlayerViewModel
     }
 
+    @MainActor
     func start(mode: PoseTrainingMode) {
         self.mode = mode
         resetTrackingState()
@@ -101,16 +102,18 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                         self?.configureCaptureSessionIfNeeded()
                         self?.startCaptureSession()
                     } else {
-                        self?.setPermissionDeniedState()
+                        Task { @MainActor in
+                            self?.setPermissionDeniedState()
+                        }
                     }
                 }
             }
         case .denied, .restricted:
-            DispatchQueue.main.async { [weak self] in
+            Task { @MainActor in
                 self?.setPermissionDeniedState()
             }
         @unknown default:
-            DispatchQueue.main.async { [weak self] in
+            Task { @MainActor in
                 self?.setPermissionDeniedState()
             }
         }
@@ -160,6 +163,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         }
     }
 
+    @MainActor
     private func setPermissionDeniedState() {
         errorMessage = "Camera permission denied. Enable camera access in System Settings."
         isBodyFullyVisible = false
@@ -202,12 +206,64 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let minimumConfidence: Float = 0.3
 
         let hasNose = hasPoint(.nose, points: points, minimumConfidence: minimumConfidence)
-        let hasLeftAnkle = hasPoint(.leftAnkle, points: points, minimumConfidence: minimumConfidence)
-        let hasRightAnkle = hasPoint(.rightAnkle, points: points, minimumConfidence: minimumConfidence)
+        let hasFeet = hasPreciseFeetBoundary(points: points)
         let hasLeftWrist = hasPoint(.leftWrist, points: points, minimumConfidence: minimumConfidence)
         let hasRightWrist = hasPoint(.rightWrist, points: points, minimumConfidence: minimumConfidence)
 
-        return hasNose && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
+        return hasNose && hasFeet && hasLeftWrist && hasRightWrist
+    }
+
+    private func hasPreciseFeetBoundary(
+        points: [VNHumanBodyPoseObservation.JointName: VNRecognizedPoint]
+    ) -> Bool {
+        guard
+            let leftKnee = points[.leftKnee],
+            let rightKnee = points[.rightKnee],
+            let leftAnkle = points[.leftAnkle],
+            let rightAnkle = points[.rightAnkle]
+        else {
+            return false
+        }
+
+        // Feet are estimated by extending the knee->ankle vector beyond the ankle.
+        // This is more accurate than using ankle position alone for bottom-boundary checks.
+        let jointConfidenceThreshold: Float = 0.35
+        guard
+            leftKnee.confidence >= jointConfidenceThreshold,
+            rightKnee.confidence >= jointConfidenceThreshold,
+            leftAnkle.confidence >= jointConfidenceThreshold,
+            rightAnkle.confidence >= jointConfidenceThreshold
+        else {
+            return false
+        }
+
+        let leftFoot = estimatedFootPoint(knee: leftKnee.location, ankle: leftAnkle.location)
+        let rightFoot = estimatedFootPoint(knee: rightKnee.location, ankle: rightAnkle.location)
+
+        // Vision points are normalized [0, 1]. Lower y means closer to frame bottom.
+        let bottomBoundaryThreshold: CGFloat = 0.28
+        guard
+            leftFoot.y <= bottomBoundaryThreshold,
+            rightFoot.y <= bottomBoundaryThreshold
+        else {
+            return false
+        }
+
+        // Prevent a single noisy cluster from counting as both feet.
+        let minHorizontalSeparation: CGFloat = 0.06
+        return abs(leftFoot.x - rightFoot.x) >= minHorizontalSeparation
+    }
+
+    private func estimatedFootPoint(knee: CGPoint, ankle: CGPoint) -> CGPoint {
+        let dx = ankle.x - knee.x
+        let dy = ankle.y - knee.y
+
+        // Extend the lower-leg direction to approximate the foot contact point.
+        let extensionFactor: CGFloat = 0.55
+        let estimatedX = ankle.x + (dx * extensionFactor)
+        let estimatedY = ankle.y + (dy * extensionFactor)
+
+        return CGPoint(x: estimatedX, y: estimatedY)
     }
 
     private func hasPoint(
