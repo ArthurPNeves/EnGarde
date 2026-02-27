@@ -1,5 +1,4 @@
 import AVFoundation
-import Combine
 import CoreMedia
 import Foundation
 import Vision
@@ -9,194 +8,322 @@ enum PoseTrainingMode {
     case enGarde
 }
 
+enum SetupState {
+    case searching
+    case inFrame
+    case success
+}
+
 enum PoseStatusStyle {
     case neutral
     case success
     case warning
 }
 
-@MainActor
-final class PoseEstimatorViewModel: ObservableObject {
+final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published var mode: PoseTrainingMode = .setup
-
-    @Published var isBodyFullyVisible: Bool = false
+    @Published private(set) var captureSession = AVCaptureSession()
+    @Published private(set) var setupState: SetupState = .searching
+    @Published private(set) var isBodyFullyVisible: Bool = false
     @Published var isEnGardePoseCorrect: Bool = false
+    @Published private(set) var holdProgress: Double = 0
+    @Published private(set) var didHoldTargetForRequiredDuration: Bool = false
+    @Published private(set) var errorMessage: String?
 
-    @Published var holdProgress: Double = 0
-    @Published var didHoldTargetForRequiredDuration: Bool = false
+    private let videoOutput = AVCaptureVideoDataOutput()
+    private let videoOutputQueue = DispatchQueue(label: "engarde.pose.video-output", qos: .userInitiated)
+    private let visionQueue = DispatchQueue(label: "engarde.pose.vision", qos: .userInitiated)
 
-    // Mock controls for UI scaffolding. Replace these with real Vision output updates.
-    @Published var mockBodyFullyVisible: Bool = false {
-        didSet { evaluateTargetState() }
-    }
-
-    @Published var mockEnGardePoseCorrect: Bool = false {
-        didSet { evaluateTargetState() }
-    }
-
+    private var isSessionConfigured = false
+    private var holdTimer: Timer?
     private var holdStartDate: Date?
-    private var holdTimer: AnyCancellable?
+    private var hasAppliedSuccessSideEffects = false
+    private let holdDuration: TimeInterval = 5.0
+
+    private weak var appState: AppState?
+    private weak var audioPlayerViewModel: AudioPlayerViewModel?
 
     var statusText: String {
-        if didHoldTargetForRequiredDuration {
-            return "Great work. You can continue."
-        }
-
-        switch mode {
-        case .setup:
-            return isBodyFullyVisible ? "Body detected. Hold steady." : "Position yourself in frame"
-        case .enGarde:
-            if isBodyFullyVisible && isEnGardePoseCorrect {
-                return "En garde posture detected. Hold steady."
-            }
-            return "Adjust feet, knees, and weapon arm"
+        switch setupState {
+        case .searching:
+            return "Position yourself in frame"
+        case .inFrame:
+            return "Body detected. Hold steady for 5 seconds."
+        case .success:
+            return "Setup complete. Great work."
         }
     }
 
     var statusStyle: PoseStatusStyle {
-        if didHoldTargetForRequiredDuration {
+        switch setupState {
+        case .searching:
+            return .warning
+        case .inFrame, .success:
             return .success
         }
-
-        return targetConditionMet ? .success : .warning
     }
 
-    private var targetConditionMet: Bool {
-        switch mode {
-        case .setup:
-            return isBodyFullyVisible
-        case .enGarde:
-            return isBodyFullyVisible && isEnGardePoseCorrect
-        }
+    func configureDependencies(appState: AppState, audioPlayerViewModel: AudioPlayerViewModel) {
+        self.appState = appState
+        self.audioPlayerViewModel = audioPlayerViewModel
     }
 
     func start(mode: PoseTrainingMode) {
         self.mode = mode
-        resetStateForNewMode()
-        setupVisionPipeline()
-        startMockCapture()
-        startHoldTimer()
+        resetTrackingState()
+        requestCameraPermissionAndStartSession()
     }
 
     func stop() {
-        stopHoldTimer()
-        stopCapture()
+        DispatchQueue.main.async { [weak self] in
+            self?.invalidateHoldTimer()
+        }
+
+        if captureSession.isRunning {
+            videoOutputQueue.async { [weak self] in
+                self?.captureSession.stopRunning()
+            }
+        }
     }
 
-    func setupVisionPipeline() {
-        // Prepare VNDetectHumanBodyPoseRequest instances and camera pipeline bindings here.
-    }
-
-    func startMockCapture() {
-        // Camera stream is mocked for now; in production this should start AVCaptureSession.
-    }
-
-    func stopCapture() {
-        // Stop AVCaptureSession and cleanup resources here.
-    }
-
-    func processSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
-        let request = VNDetectHumanBodyPoseRequest { [weak self] request, _ in
-            guard
-                let self,
-                let observations = request.results as? [VNHumanBodyPoseObservation],
-                let first = observations.first
-            else {
-                Task { @MainActor in
-                    self?.updatePoseDetection(bodyVisible: false, enGardePoseCorrect: false)
+    private func requestCameraPermissionAndStartSession() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            DispatchQueue.main.async { [weak self] in
+                self?.configureCaptureSessionIfNeeded()
+                self?.startCaptureSession()
+            }
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self?.errorMessage = nil
+                        self?.configureCaptureSessionIfNeeded()
+                        self?.startCaptureSession()
+                    } else {
+                        self?.setPermissionDeniedState()
+                    }
                 }
+            }
+        case .denied, .restricted:
+            DispatchQueue.main.async { [weak self] in
+                self?.setPermissionDeniedState()
+            }
+        @unknown default:
+            DispatchQueue.main.async { [weak self] in
+                self?.setPermissionDeniedState()
+            }
+        }
+    }
+
+    private func configureCaptureSessionIfNeeded() {
+        guard !isSessionConfigured else { return }
+
+        captureSession.beginConfiguration()
+        captureSession.sessionPreset = .high
+
+        do {
+            guard let camera = AVCaptureDevice.default(for: .video) else {
+                errorMessage = "No camera found on this Mac."
+                captureSession.commitConfiguration()
                 return
             }
 
-            Task { @MainActor in
-                self.handleObservation(first)
+            let input = try AVCaptureDeviceInput(device: camera)
+            if captureSession.canAddInput(input) {
+                captureSession.addInput(input)
             }
+
+            videoOutput.alwaysDiscardsLateVideoFrames = true
+            videoOutput.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
+            ]
+            videoOutput.setSampleBufferDelegate(self, queue: videoOutputQueue)
+
+            if captureSession.canAddOutput(videoOutput) {
+                captureSession.addOutput(videoOutput)
+            }
+
+            isSessionConfigured = true
+            errorMessage = nil
+        } catch {
+            errorMessage = "Unable to configure camera: \(error.localizedDescription)"
         }
 
-        let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, orientation: .up, options: [:])
-        try? handler.perform([request])
+        captureSession.commitConfiguration()
     }
 
-    func handleObservation(_ observation: VNHumanBodyPoseObservation) {
-        // Full-body visibility can be inferred by checking required joints confidence.
-        let bodyVisible = estimateFullBodyVisibility(from: observation)
-
-        // En garde posture validation will later include specific joint-angle rules.
-        let enGardePose = estimateEnGardePose(from: observation)
-
-        updatePoseDetection(bodyVisible: bodyVisible, enGardePoseCorrect: enGardePose)
+    private func startCaptureSession() {
+        guard isSessionConfigured, !captureSession.isRunning else { return }
+        videoOutputQueue.async { [weak self] in
+            self?.captureSession.startRunning()
+        }
     }
 
-    func estimateFullBodyVisibility(from observation: VNHumanBodyPoseObservation) -> Bool {
-        _ = observation
-        // TODO: Implement top-of-head through feet visibility checks.
-        return mockBodyFullyVisible
-    }
-
-    func estimateEnGardePose(from observation: VNHumanBodyPoseObservation) -> Bool {
-        _ = observation
-        // TODO: Implement knee, foot, and elbow angle constraints.
-        return mockEnGardePoseCorrect
-    }
-
-    private func startHoldTimer() {
-        holdTimer = Timer.publish(every: 0.1, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.evaluateTargetState()
-            }
-    }
-
-    private func stopHoldTimer() {
-        holdTimer?.cancel()
-        holdTimer = nil
-    }
-
-    private func resetStateForNewMode() {
+    private func setPermissionDeniedState() {
+        errorMessage = "Camera permission denied. Enable camera access in System Settings."
         isBodyFullyVisible = false
-        isEnGardePoseCorrect = false
+        setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false
-        holdStartDate = nil
-        mockBodyFullyVisible = false
-        mockEnGardePoseCorrect = false
+        appState?.isCameraSetupValidated = false
+        invalidateHoldTimer()
     }
 
-    private func updatePoseDetection(bodyVisible: Bool, enGardePoseCorrect: Bool) {
-        isBodyFullyVisible = bodyVisible
-        isEnGardePoseCorrect = enGardePoseCorrect
+    private func processSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
+        visionQueue.async { [weak self] in
+            guard let self else { return }
+            let request = VNDetectHumanBodyPoseRequest()
+            let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, orientation: .up, options: [:])
+
+            do {
+                try handler.perform([request])
+
+                guard
+                    let observation = (request.results as? [VNHumanBodyPoseObservation])?.first
+                else {
+                    self.applyFrameVisibility(false)
+                    return
+                }
+
+                let wholeBodyVisible = self.hasRequiredBoundaryJoints(in: observation)
+                self.applyFrameVisibility(wholeBodyVisible)
+            } catch {
+                self.applyFrameVisibility(false)
+            }
+        }
     }
 
-    private func evaluateTargetState() {
-        if didHoldTargetForRequiredDuration {
-            return
+    private func hasRequiredBoundaryJoints(in observation: VNHumanBodyPoseObservation) -> Bool {
+        guard let points = try? observation.recognizedPoints(.all) else {
+            return false
         }
 
-        isBodyFullyVisible = mockBodyFullyVisible
-        if mode == .enGarde {
-            isEnGardePoseCorrect = mockEnGardePoseCorrect
-        } else {
-            isEnGardePoseCorrect = false
-        }
+        let minimumConfidence: Float = 0.3
 
-        guard targetConditionMet else {
-            holdStartDate = nil
+        let hasNose = hasPoint(.nose, points: points, minimumConfidence: minimumConfidence)
+        let hasLeftAnkle = hasPoint(.leftAnkle, points: points, minimumConfidence: minimumConfidence)
+        let hasRightAnkle = hasPoint(.rightAnkle, points: points, minimumConfidence: minimumConfidence)
+        let hasLeftWrist = hasPoint(.leftWrist, points: points, minimumConfidence: minimumConfidence)
+        let hasRightWrist = hasPoint(.rightWrist, points: points, minimumConfidence: minimumConfidence)
+
+        return hasNose && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
+    }
+
+    private func hasPoint(
+        _ joint: VNHumanBodyPoseObservation.JointName,
+        points: [VNHumanBodyPoseObservation.JointName: VNRecognizedPoint],
+        minimumConfidence: Float
+    ) -> Bool {
+        guard let point = points[joint] else {
+            return false
+        }
+        return point.confidence > minimumConfidence
+    }
+
+    private func applyFrameVisibility(_ isVisible: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            self?.updateFrameVisibilityOnMain(isVisible)
+        }
+    }
+
+    @MainActor
+    private func updateFrameVisibilityOnMain(_ isVisible: Bool) {
+        guard setupState != .success else { return }
+
+        isBodyFullyVisible = isVisible
+
+        guard isVisible else {
+            setupState = .searching
             holdProgress = 0
+            holdStartDate = nil
+            didHoldTargetForRequiredDuration = false
+            appState?.isCameraSetupValidated = false
+            invalidateHoldTimer()
             return
         }
 
+        setupState = .inFrame
+        startHoldTimerIfNeeded()
+    }
+
+    @MainActor
+    private func startHoldTimerIfNeeded() {
         if holdStartDate == nil {
             holdStartDate = Date()
         }
 
-        guard let holdStartDate else { return }
+        guard holdTimer == nil else { return }
 
-        let heldDuration = Date().timeIntervalSince(holdStartDate)
-        holdProgress = min(heldDuration / 5.0, 1.0)
-
-        if heldDuration >= 5.0 {
-            didHoldTargetForRequiredDuration = true
-            holdProgress = 1.0
+        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.tickHoldTimer()
+            }
         }
+    }
+
+    @MainActor
+    private func tickHoldTimer() {
+        guard setupState == .inFrame else {
+            invalidateHoldTimer()
+            return
+        }
+
+        guard let holdStartDate else {
+            holdStartDate = Date()
+            return
+        }
+
+        let elapsed = Date().timeIntervalSince(holdStartDate)
+        holdProgress = min(elapsed / holdDuration, 1.0)
+
+        if elapsed >= holdDuration {
+            markSetupSuccess()
+        }
+    }
+
+    @MainActor
+    private func markSetupSuccess() {
+        setupState = .success
+        didHoldTargetForRequiredDuration = true
+        holdProgress = 1
+        appState?.isCameraSetupValidated = true
+        invalidateHoldTimer()
+
+        guard !hasAppliedSuccessSideEffects else { return }
+        hasAppliedSuccessSideEffects = true
+        audioPlayerViewModel?.playSuccessSound()
+    }
+
+    @MainActor
+    private func invalidateHoldTimer() {
+        holdTimer?.invalidate()
+        holdTimer = nil
+    }
+
+    @MainActor
+    private func resetTrackingState() {
+        isBodyFullyVisible = false
+        isEnGardePoseCorrect = false
+        setupState = .searching
+        holdProgress = 0
+        didHoldTargetForRequiredDuration = false
+        holdStartDate = nil
+        hasAppliedSuccessSideEffects = false
+        errorMessage = nil
+        appState?.isCameraSetupValidated = false
+        invalidateHoldTimer()
+    }
+}
+
+extension PoseEstimatorViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
+    func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        _ = output
+        _ = connection
+        processSampleBuffer(sampleBuffer)
     }
 }

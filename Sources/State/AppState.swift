@@ -8,6 +8,7 @@ final class AppState: ObservableObject {
     @Published var selectedSidebar: SidebarItem = .welcome
     @Published var activeFlow: FlowDestination?
     @Published var isLungeUnlocked: Bool = false
+    @Published var isCameraSetupValidated: Bool = false
 
     var destination: NavigationDestination {
         if let activeFlow {
@@ -53,6 +54,7 @@ final class AppState: ObservableObject {
     }
 
     func startSetupCameraFlow() {
+        isCameraSetupValidated = false
         activeFlow = .setupCameraLive
     }
 

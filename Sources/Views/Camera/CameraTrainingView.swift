@@ -5,9 +5,9 @@ struct CameraTrainingView: View {
     let nextButtonTitle: String
     let onComplete: () -> Void
 
+    @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var audioPlayerViewModel: AudioPlayerViewModel
     @StateObject private var poseEstimatorViewModel = PoseEstimatorViewModel()
-    @State private var didPlaySuccessSound = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -18,17 +18,27 @@ struct CameraTrainingView: View {
             VStack(alignment: .leading, spacing: 20) {
                 statusBanner
 
-                CameraFeedPlaceholderView()
+                CameraPreviewView(session: poseEstimatorViewModel.captureSession)
+                    .frame(maxWidth: .infinity, minHeight: 360)
+                    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 26, style: .continuous)
+                            .strokeBorder(.white.opacity(0.16), lineWidth: 1)
+                    )
+
+                if let errorMessage = poseEstimatorViewModel.errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
+                }
 
                 if mode == .enGarde {
                     enGardeChecklist
                 }
 
-                debugSimulationControls
-
                 holdProgress
 
-                if poseEstimatorViewModel.didHoldTargetForRequiredDuration {
+                if showNextButton {
                     PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
                         onComplete()
                     }
@@ -39,15 +49,11 @@ struct CameraTrainingView: View {
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .onAppear {
+            poseEstimatorViewModel.configureDependencies(appState: appState, audioPlayerViewModel: audioPlayerViewModel)
             poseEstimatorViewModel.start(mode: mode)
         }
         .onDisappear {
             poseEstimatorViewModel.stop()
-        }
-        .onChange(of: poseEstimatorViewModel.didHoldTargetForRequiredDuration) { newValue in
-            guard newValue, !didPlaySuccessSound else { return }
-            didPlaySuccessSound = true
-            audioPlayerViewModel.playSuccessSound()
         }
     }
 
@@ -108,21 +114,11 @@ struct CameraTrainingView: View {
         }
     }
 
-    private var debugSimulationControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Simulation")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            Toggle("Whole body detected", isOn: $poseEstimatorViewModel.mockBodyFullyVisible)
-
-            if mode == .enGarde {
-                Toggle("En garde posture detected", isOn: $poseEstimatorViewModel.mockEnGardePoseCorrect)
-            }
+    private var showNextButton: Bool {
+        if mode == .setup {
+            return appState.isCameraSetupValidated
         }
-        .toggleStyle(.switch)
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        return poseEstimatorViewModel.didHoldTargetForRequiredDuration
     }
 
     private var statusColor: Color {
