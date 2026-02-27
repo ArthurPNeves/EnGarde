@@ -1,6 +1,7 @@
 import Foundation
 
 enum FlowDestination: Equatable {
+    case cameraSetupTutorial
     case setupCameraLive
     case enGardeTutorial
     case enGardeCamera

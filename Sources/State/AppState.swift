@@ -48,7 +48,8 @@ final class AppState: ObservableObject {
     }
 
     func advanceFromGuide() {
-        navigate(to: .camSetup)
+        selectedSidebar = .guide
+        activeFlow = .cameraSetupTutorial
     }
 
     func startSetupCameraFlow() {

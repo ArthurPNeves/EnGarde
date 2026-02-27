@@ -30,7 +30,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .camSetup:
             return "camera"
         case .exercises:
-            return "figure.run"
+            return "figure.fencing"
         }
     }
 }

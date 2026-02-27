@@ -4,6 +4,8 @@ struct RootSplitView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage("prefersDarkAppearance") private var prefersDarkAppearance: Bool = true
 
+    private let visibleSidebarItems: [SidebarItem] = [.welcome, .guide, .exercises]
+
     var body: some View {
         NavigationSplitView {
             sidebar
@@ -13,18 +15,35 @@ struct RootSplitView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(detailBackground)
         }
+        .overlay(alignment: .bottomTrailing) {
+            Image(systemName: "questionmark.circle.fill")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+                .padding(14)
+        }
         .navigationSplitViewStyle(.balanced)
     }
 
     private var sidebar: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 10) {
-                    Image(systemName: "figure.fencing")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.primary)
-                    Text("En garde")
-                        .font(.title2.weight(.bold))
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 12) {
+                    Text("EG")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 42, height: 42)
+                        .background(
+                            Circle()
+                                .fill(Color(red: 0.12, green: 0.31, blue: 0.63))
+                        )
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("EG")
+                            .font(.headline.weight(.semibold))
+                        Text("version 1")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -33,30 +52,37 @@ struct RootSplitView: View {
             Divider()
                 .overlay(.white.opacity(0.1))
 
-            List(SidebarItem.allCases, selection: sidebarSelectionBinding) { item in
-                Label(item.title, systemImage: item.symbolName)
-                    .font(.body.weight(.medium))
-                    .symbolRenderingMode(.hierarchical)
-                    .tag(item)
-            }
-            .listStyle(.sidebar)
-            .scrollContentBackground(.hidden)
-            .background(.ultraThinMaterial)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("NAVIGATION")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 14)
 
-            Divider()
-                .overlay(.white.opacity(0.1))
+                List(visibleSidebarItems, selection: sidebarSelectionBinding) { item in
+                    Label(item.title, systemImage: item.symbolName)
+                        .font(.body.weight(.medium))
+                        .symbolRenderingMode(.hierarchical)
+                        .tag(item)
+                }
+                .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
+                .background(.clear)
+            }
+            .padding(.top, 10)
+
+            Spacer(minLength: 0)
 
             HStack(spacing: 12) {
-                Image(systemName: prefersDarkAppearance ? "moon.stars.fill" : "sun.max.fill")
+                Image(systemName: "moon.stars.fill")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 34, height: 34)
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(prefersDarkAppearance ? "Dark Mode" : "Light Mode")
+                    Text("Dark Mode")
                         .font(.headline)
-                    Text(prefersDarkAppearance ? "Switch to light" : "Switch to dark")
+                    Text("Switch to dark")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -106,6 +132,8 @@ struct RootSplitView: View {
                 CamSetupView()
             case .sidebar(.exercises):
                 ExercisesView()
+            case .flow(.cameraSetupTutorial):
+                CamSetupView()
             case .flow(.setupCameraLive):
                 CameraTrainingView(mode: .setup, nextButtonTitle: "Next") {
                     appState.completeSetupCameraFlow()
