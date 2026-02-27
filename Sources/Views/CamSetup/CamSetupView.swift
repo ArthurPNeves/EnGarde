@@ -20,14 +20,14 @@ struct CamSetupView: View {
                         Text("Calibration Tutorial")
                             .font(.title3.weight(.semibold))
 
-                        Text("To ensure accurate posture analysis, position your device to capture your full body from feet to head. Refer to the visual indicators below.")
+                        Text("To ensure accurate posture analysis, position your device to capture your body from the knees up (mid-shin is ideal) to the head. Refer to the visual indicators below.")
                             .font(.body)
                             .foregroundStyle(.secondary)
 
                         HStack(alignment: .top, spacing: 12) {
                             VStack(alignment: .leading, spacing: 10) {
                                 instructionRow(icon: "camera.fill", text: "Setup Cam: Place your device on a stable surface at chest height.")
-                                instructionRow(icon: "figure.stand", text: "Capture Whole Body: Ensure your body (feet/floor to head) is in frame. Tip: Floor must be visible.")
+                                instructionRow(icon: "figure.stand", text: "Capture Framing: Keep your body visible from knees (or mid-shin) to head. Feet do not need to appear in this setup phase.")
                                 instructionRow(icon: "circle.grid.3x3.fill", text: "Position Feedback: Red dot - Outside of Frame. Yellow dot - Inside, do not move. Green dot - Practice Ready.")
                             }
 
@@ -137,8 +137,7 @@ struct CamSetupView: View {
 
     private func incorrectCard(title: String) -> some View {
         VStack(spacing: 5) {
-            Image("template_vertical", bundle: .module)
-                .resizable()
+            ResourceImageView(name: "template_vertical")
                 .scaledToFill()
                 .frame(width: 92, height: 130)
                 .clipped()
@@ -168,8 +167,7 @@ struct CamSetupView: View {
                 .foregroundStyle(.green)
 
             ZStack {
-                Image("template_vertical", bundle: .module)
-                    .resizable()
+                ResourceImageView(name: "template_vertical")
                     .scaledToFill()
                     .frame(height: 150)
                     .frame(maxWidth: .infinity)

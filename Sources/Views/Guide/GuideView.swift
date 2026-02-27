@@ -91,8 +91,7 @@ struct GuideView: View {
 
     private func guideImageCard(resourceName: String, label: String) -> some View {
         VStack(spacing: 6) {
-            Image(resourceName, bundle: .module)
-                .resizable()
+            ResourceImageView(name: resourceName)
                 .scaledToFill()
                 .frame(height: 185)
                 .frame(maxWidth: .infinity)
@@ -114,8 +113,7 @@ struct GuideView: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Color.black.opacity(0.35))
-                Image(resourceName, bundle: .module)
-                    .resizable()
+                ResourceImageView(name: resourceName)
                     .scaledToFit()
                     .padding(8)
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
