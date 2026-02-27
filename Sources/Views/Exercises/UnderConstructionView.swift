@@ -14,11 +14,14 @@ struct UnderConstructionView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .frame(maxWidth: 860)
+            .frame(maxWidth: .infinity, alignment: .center)
 
             PrimaryActionButton(title: "Back to Exercises", symbolName: "arrow.left") {
                 appState.returnToExercises()
             }
+            .frame(maxWidth: 860)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: 860, alignment: .leading)
     }
 }

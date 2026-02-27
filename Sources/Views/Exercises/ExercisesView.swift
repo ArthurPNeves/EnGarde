@@ -7,6 +7,7 @@ struct ExercisesView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Exercises")
                 .font(.largeTitle.weight(.bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
                 exerciseCard(
@@ -27,10 +28,11 @@ struct ExercisesView: View {
                     appState.openLunge()
                 }
             }
+            .frame(maxWidth: 940)
+            .frame(maxWidth: .infinity, alignment: .center)
 
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: 940, alignment: .leading)
     }
 
     @ViewBuilder

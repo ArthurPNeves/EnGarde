@@ -8,6 +8,7 @@ struct GuideView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Guide")
                     .font(.largeTitle.weight(.bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 18) {
@@ -30,8 +31,9 @@ struct GuideView: View {
                         }
                     }
                 }
+                .frame(maxWidth: 940)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .frame(maxWidth: 940, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollIndicators(.hidden)

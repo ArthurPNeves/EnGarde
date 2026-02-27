@@ -20,12 +20,15 @@ struct CongratsView: View {
                         .foregroundStyle(.green)
                 }
             }
+            .frame(maxWidth: 860)
+            .frame(maxWidth: .infinity, alignment: .center)
 
             PrimaryActionButton(title: "Back to Exercises", symbolName: "list.bullet") {
                 appState.returnToExercises()
             }
+            .frame(maxWidth: 860)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: 860, alignment: .leading)
         .onAppear {
             guard !didUnlock else { return }
             didUnlock = true

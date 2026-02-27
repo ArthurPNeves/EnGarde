@@ -11,15 +11,7 @@ struct RootSplitView: View {
             detailContent
                 .padding(24)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .background(
-                    LinearGradient(
-                        colors: [Color(.sRGBLinear, white: 0.12, opacity: 1), Color(.sRGBLinear, white: 0.06, opacity: 1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .opacity(prefersDarkAppearance ? 1 : 0)
-                )
-                .background(.background)
+                .background(detailBackground)
         }
         .navigationSplitViewStyle(.balanced)
     }
@@ -34,9 +26,6 @@ struct RootSplitView: View {
                     Text("En garde")
                         .font(.title2.weight(.bold))
                 }
-                Text("AI-powered fencing posture coach")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)
@@ -74,14 +63,36 @@ struct RootSplitView: View {
 
                 Spacer()
 
-                Toggle("", isOn: $prefersDarkAppearance)
-                    .labelsHidden()
+                ThemeToggleButton(isDarkMode: $prefersDarkAppearance)
             }
             .padding(14)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .padding(16)
         }
-        .background(.regularMaterial)
+        .background(sidebarBackground)
+    }
+
+    private var detailBackground: some View {
+        LinearGradient(
+            colors: prefersDarkAppearance
+                ? [Color(red: 0.04, green: 0.10, blue: 0.23), Color(red: 0.02, green: 0.06, blue: 0.16)]
+                : [Color.white, Color(red: 0.92, green: 0.95, blue: 1.0)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    private var sidebarBackground: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 0)
+                .fill(
+                    prefersDarkAppearance
+                        ? Color(red: 0.03, green: 0.09, blue: 0.21)
+                        : Color.white
+                )
+            Rectangle()
+                .fill(.ultraThinMaterial)
+        }
     }
 
     private var detailContent: some View {

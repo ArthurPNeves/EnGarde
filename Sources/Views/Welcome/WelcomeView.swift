@@ -11,10 +11,12 @@ struct WelcomeView: View {
                 Text("En garde")
                     .font(.largeTitle.weight(.bold))
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Text("AI-powered fencing posture coach")
                 .font(.title3)
                 .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             GlassCard {
                 VStack(alignment: .leading, spacing: 20) {
@@ -34,12 +36,15 @@ struct WelcomeView: View {
                     }
                 }
             }
+            .frame(maxWidth: 900)
+            .frame(maxWidth: .infinity, alignment: .center)
 
             PrimaryActionButton(title: "Begin Training", symbolName: "figure.fencing") {
                 appState.beginTrainingFromWelcome()
             }
+            .frame(maxWidth: 900)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: 900, alignment: .leading)
     }
 
     @ViewBuilder

@@ -8,6 +8,7 @@ struct CamSetupView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Camera Setup")
                     .font(.largeTitle.weight(.bold))
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 GlassCard {
                     VStack(alignment: .leading, spacing: 18) {
@@ -30,8 +31,9 @@ struct CamSetupView: View {
                         }
                     }
                 }
+                .frame(maxWidth: 940)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .frame(maxWidth: 940, alignment: .leading)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollIndicators(.hidden)

@@ -13,27 +13,31 @@ struct CameraTrainingView: View {
         VStack(alignment: .leading, spacing: 20) {
             Text(mode == .setup ? "Camera Check" : "En garde Check")
                 .font(.largeTitle.weight(.bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            statusBanner
+            VStack(alignment: .leading, spacing: 20) {
+                statusBanner
 
-            CameraFeedPlaceholderView()
+                CameraFeedPlaceholderView()
 
-            if mode == .enGarde {
-                enGardeChecklist
-            }
-
-            debugSimulationControls
-
-            holdProgress
-
-            if poseEstimatorViewModel.didHoldTargetForRequiredDuration {
-                PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
-                    onComplete()
+                if mode == .enGarde {
+                    enGardeChecklist
                 }
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
+
+                debugSimulationControls
+
+                holdProgress
+
+                if poseEstimatorViewModel.didHoldTargetForRequiredDuration {
+                    PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
+                        onComplete()
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
+            .frame(maxWidth: 960)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxWidth: 960, alignment: .leading)
         .onAppear {
             poseEstimatorViewModel.start(mode: mode)
         }

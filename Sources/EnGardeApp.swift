@@ -11,6 +11,7 @@ struct EnGardeApp: App {
             RootSplitView()
                 .environmentObject(appState)
                 .environmentObject(audioPlayerViewModel)
+                .tint(prefersDarkAppearance ? .white : Color(red: 0.07, green: 0.20, blue: 0.44))
                 .preferredColorScheme(prefersDarkAppearance ? .dark : .light)
                 .task {
                     appState.requestCameraPermission()
