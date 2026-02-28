@@ -21,8 +21,8 @@ struct PoseSkeletonOverlayView: View {
                             path.move(to: mappedPoint(start, in: proxy.size))
                             path.addLine(to: mappedPoint(end, in: proxy.size))
                         }
-                        .stroke(segment.color, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                        .shadow(color: segment.color.opacity(0.45), radius: 3)
+                        .stroke(segment.color, style: StrokeStyle(lineWidth: 12, lineCap: .round, lineJoin: .round))
+                        .shadow(color: segment.color.opacity(0.55), radius: 6)
                     }
                 }
             }
