@@ -11,7 +11,7 @@ struct RootSplitView: View {
             sidebar
         } detail: {
             detailContent
-                .padding(24)
+                .padding(isCameraDestination ? 0 : 24)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(detailBackground)
         }
@@ -159,6 +159,18 @@ struct RootSplitView: View {
             }
         }
         .animation(.smooth, value: appState.destination)
+    }
+
+    private var isCameraDestination: Bool {
+        switch appState.destination {
+        case .flow(.setupCameraLive),
+                .flow(.enGardeUpperBodyCamera),
+                .flow(.enGardeLowerBodyCamera),
+                .flow(.enGardeFullPoseCamera):
+            return true
+        default:
+            return false
+        }
     }
 
     private var sidebarSelectionBinding: Binding<SidebarItem?> {

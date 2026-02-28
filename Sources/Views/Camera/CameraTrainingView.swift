@@ -10,48 +10,75 @@ struct CameraTrainingView: View {
     @StateObject private var poseEstimatorViewModel = PoseEstimatorViewModel()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text(cameraTitle)
-                .font(.largeTitle.weight(.bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
+        ZStack {
+            CameraPreviewView(session: poseEstimatorViewModel.captureSession)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    statusBanner
+            LinearGradient(
+                colors: [Color.black.opacity(0.35), Color.clear, Color.black.opacity(0.45)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .allowsHitTesting(false)
 
-                    CameraPreviewView(session: poseEstimatorViewModel.captureSession)
-                        .frame(maxWidth: .infinity, minHeight: 360)
-                        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                                .strokeBorder(.white.opacity(0.16), lineWidth: 1)
-                        )
-
-                    if let errorMessage = poseEstimatorViewModel.errorMessage {
-                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.red)
-                    }
+            VStack(spacing: 0) {
+                HStack(alignment: .top) {
+                    statusIndicatorButton
 
                     if mode == .enGarde {
-                        validationAndDebugSection
+                        enGardeChecklistPanel
+                            .padding(.leading, 12)
                     }
 
-                    holdProgress
-
-                    if showNextButton {
-                        PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
-                            onComplete()
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                    }
+                    Spacer()
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+
+                if let errorMessage = poseEstimatorViewModel.errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
+                        .padding(.horizontal, 16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Spacer()
+
+                if showNextButton {
+                    HStack {
+                        Spacer()
+                        Button(action: onComplete) {
+                            HStack(spacing: 8) {
+                                Text(nextButtonTitle)
+                                    .font(.subheadline.weight(.semibold))
+                                Image(systemName: "arrow.right")
+                                    .font(.subheadline.weight(.bold))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .foregroundStyle(.white)
+                            .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 10)
+                }
+
+                holdProgressLine
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 14)
             }
-            .scrollIndicators(.hidden)
-            .frame(maxWidth: 960)
-            .frame(maxWidth: .infinity, alignment: .center)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(.white.opacity(0.15), lineWidth: 1)
+        )
         .onAppear {
             poseEstimatorViewModel.configureDependencies(appState: appState, audioPlayerViewModel: audioPlayerViewModel)
             poseEstimatorViewModel.start(mode: mode)
@@ -61,72 +88,42 @@ struct CameraTrainingView: View {
         }
     }
 
-    private var statusBanner: some View {
-        HStack(spacing: 10) {
+    private var statusIndicatorButton: some View {
+        Button(action: {}) {
             Circle()
-                .fill(statusColor)
-                .frame(width: 10, height: 10)
-            Text(poseEstimatorViewModel.statusText)
-                .font(.headline)
-                .foregroundStyle(statusColor)
+                .fill(statusDotColor)
+                .frame(width: 24, height: 24)
+                .overlay(
+                    Circle()
+                        .strokeBorder(.white.opacity(0.6), lineWidth: 1)
+                )
+                .shadow(color: statusDotColor.opacity(0.6), radius: 8)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .buttonStyle(.plain)
+        .accessibilityLabel(poseEstimatorViewModel.statusText)
     }
 
-    private var holdProgress: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Hold timer")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
+    private var holdProgressLine: some View {
+        VStack(spacing: 0) {
             ProgressView(value: poseEstimatorViewModel.holdProgress)
                 .tint(.green)
-
-            Text("Hold correct form for 5 continuous seconds")
-                .font(.footnote)
-                .foregroundStyle(.tertiary)
         }
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .progressViewStyle(.linear)
     }
 
-    private var enGardeChecklist: some View {
+    private var enGardeChecklistPanel: some View {
         VStack(alignment: .leading, spacing: 10) {
-            checklistRow(
-                title: "Upper body validated",
-                isValid: poseEstimatorViewModel.isUpperBodyValid
-            )
-            checklistRow(
-                title: "Lower body validated",
-                isValid: poseEstimatorViewModel.isLowerBodyValid
-            )
-            checklistRow(
-                title: "Neck-to-feet visible",
-                isValid: poseEstimatorViewModel.isBodyFullyVisible
-            )
-            checklistRow(
-                title: "Current step passed",
-                isValid: poseEstimatorViewModel.isEnGardePoseCorrect
-            )
+            ForEach(activeChecklistItems, id: \.title) { item in
+                checklistRow(title: item.title, isValid: item.isValid)
+            }
         }
         .padding(14)
+        .frame(maxWidth: 300, alignment: .leading)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    @ViewBuilder
-    private var validationAndDebugSection: some View {
-        if showUpperBodyDebugPanel || showLowerBodyDebugPanel {
-            HStack(alignment: .top, spacing: 12) {
-                enGardeChecklist
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-                debugPanel
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
-            }
-        } else {
-            enGardeChecklist
-        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+        )
     }
 
     @ViewBuilder
@@ -136,7 +133,35 @@ struct CameraTrainingView: View {
                 .foregroundStyle(isValid ? .green : .red)
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white)
+        }
+    }
+
+    private var activeChecklistItems: [(title: String, isValid: Bool)] {
+        let upperItems: [(String, Bool)] = [
+            ("Back arm", poseEstimatorViewModel.upperBodyIsBackArmElevated),
+            ("Front arm forward", poseEstimatorViewModel.upperBodyIsFrontArmForward),
+            ("Front arm angled", poseEstimatorViewModel.upperBodyIsFrontArmSlightlyBent)
+        ]
+
+        let frontKneeAngle = appState.isRightHanded
+            ? poseEstimatorViewModel.lowerBodyRightKneeAngle
+            : poseEstimatorViewModel.lowerBodyLeftKneeAngle
+
+        let lowerItems: [(String, Bool)] = [
+            ("Legs open", poseEstimatorViewModel.lowerBodyIsStanceWide),
+            ("Forward feet pointing forward", poseEstimatorViewModel.lowerBodyIsFrontLegForward),
+            ("Forward knee angled", (120...140).contains(frontKneeAngle)),
+            ("Back angled", poseEstimatorViewModel.lowerBodyIsBackLegPointingCamera)
+        ]
+
+        switch appState.currentEnGardeStep {
+        case .upperBody:
+            return upperItems
+        case .lowerBody:
+            return lowerItems
+        case .fullPose, .completed:
+            return upperItems + lowerItems
         }
     }
 
@@ -145,127 +170,6 @@ struct CameraTrainingView: View {
             return appState.isCameraSetupValidated
         }
         return poseEstimatorViewModel.didHoldTargetForRequiredDuration
-    }
-
-    private var showUpperBodyDebugPanel: Bool {
-        mode == .enGarde && appState.currentEnGardeStep == .upperBody
-    }
-
-    private var showLowerBodyDebugPanel: Bool {
-        mode == .enGarde && appState.currentEnGardeStep == .lowerBody
-    }
-
-    @ViewBuilder
-    private var debugPanel: some View {
-        if showUpperBodyDebugPanel {
-            upperBodyDebugPanel
-        } else if showLowerBodyDebugPanel {
-            lowerBodyDebugPanel
-        }
-    }
-
-    private var upperBodyDebugPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Upper Body Metrics (updates every 3s)")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            metricRow(
-                label: "frontDirectionX",
-                value: String(format: "%.3f", poseEstimatorViewModel.upperBodyFrontDirectionX),
-                passed: poseEstimatorViewModel.upperBodyIsFrontArmForward
-            )
-
-            metricRow(
-                label: "frontArmAngle",
-                value: String(format: "%.1f°", poseEstimatorViewModel.upperBodyFrontArmAngle),
-                passed: poseEstimatorViewModel.upperBodyIsFrontArmSlightlyBent
-            )
-
-            metricRow(
-                label: "backWristLiftDelta",
-                value: String(format: "%.3f", poseEstimatorViewModel.upperBodyBackWristLiftDelta),
-                passed: poseEstimatorViewModel.upperBodyIsBackArmElevated
-            )
-
-            if let updatedAt = poseEstimatorViewModel.upperBodyMetricsUpdatedAt {
-                Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private var lowerBodyDebugPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Lower Body Metrics (updates every 3s)")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            metricRow(
-                label: "leftKneeAngle",
-                value: String(format: "%.1f°", poseEstimatorViewModel.lowerBodyLeftKneeAngle),
-                passed: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent
-            )
-
-            metricRow(
-                label: "rightKneeAngle",
-                value: String(format: "%.1f°", poseEstimatorViewModel.lowerBodyRightKneeAngle),
-                passed: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent
-            )
-
-            metricRow(
-                label: "ankleDistance",
-                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyAnkleDistance),
-                passed: poseEstimatorViewModel.lowerBodyIsStanceWide
-            )
-
-            metricRow(
-                label: "shoulderDistance",
-                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyShoulderDistance),
-                passed: poseEstimatorViewModel.lowerBodyIsStanceWide
-            )
-
-            metricRow(
-                label: "frontShinHorizontalOffset",
-                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyFrontLegDirectionX),
-                passed: poseEstimatorViewModel.lowerBodyIsFrontLegForward
-            )
-
-            metricRow(
-                label: "backLegDirectionX",
-                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyBackLegDirectionX),
-                passed: poseEstimatorViewModel.lowerBodyIsBackLegPointingCamera
-            )
-
-            if let updatedAt = poseEstimatorViewModel.lowerBodyMetricsUpdatedAt {
-                Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-        .padding(14)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    @ViewBuilder
-    private func metricRow(label: String, value: String, passed: Bool) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: passed ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .foregroundStyle(passed ? .green : .red)
-
-            Text(label)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-
-            Spacer()
-
-            Text(value)
-                .font(.system(.subheadline, design: .monospaced))
-                .foregroundStyle(.primary)
-        }
     }
 
     private var cameraTitle: String {
@@ -283,14 +187,14 @@ struct CameraTrainingView: View {
         }
     }
 
-    private var statusColor: Color {
-        switch poseEstimatorViewModel.statusStyle {
-        case .neutral:
-            return .secondary
+    private var statusDotColor: Color {
+        switch poseEstimatorViewModel.setupState {
+        case .searching:
+            return .red
+        case .inFrame:
+            return .yellow
         case .success:
             return .green
-        case .warning:
-            return .red
         }
     }
 }
