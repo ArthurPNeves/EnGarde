@@ -398,7 +398,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let leftKneeAngle = angleDegrees(a: leftHip.location, b: leftKnee.location, c: leftAnkle.location)
         let rightKneeAngle = angleDegrees(a: rightHip.location, b: rightKnee.location, c: rightAnkle.location)
 
-        let kneesDeeplyBent = (120...160).contains(leftKneeAngle) && (120...172).contains(rightKneeAngle)
+        let kneesDeeplyBent = (120...170).contains(leftKneeAngle) && (120...172).contains(rightKneeAngle)
 
         let ankleDistance = distance(leftAnkle.location, rightAnkle.location)
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)

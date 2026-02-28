@@ -26,7 +26,7 @@ struct CameraTrainingView: View {
                     statusIndicatorButton
 
                     if mode == .enGarde {
-                        enGardeChecklistPanel
+                        enGardeChecklistOverlay
                             .padding(.leading, 12)
                     }
 
@@ -111,14 +111,33 @@ struct CameraTrainingView: View {
         .progressViewStyle(.linear)
     }
 
-    private var enGardeChecklistPanel: some View {
+    @ViewBuilder
+    private var enGardeChecklistOverlay: some View {
+        if appState.currentEnGardeStep == .fullPose || appState.currentEnGardeStep == .completed {
+            HStack(alignment: .top, spacing: 14) {
+                checklistPanel(title: "Upper Body", items: upperChecklistItems)
+                checklistPanel(title: "Lower Body", items: lowerChecklistItems)
+            }
+        } else {
+            checklistPanel(title: nil, items: activeChecklistItems)
+        }
+    }
+
+    private func checklistPanel(title: String?, items: [(title: String, isValid: Bool)]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(activeChecklistItems, id: \.title) { item in
+            if let title {
+                Text(title)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.bottom, 2)
+            }
+
+            ForEach(items, id: \.title) { item in
                 checklistRow(title: item.title, isValid: item.isValid)
             }
         }
-        .padding(14)
-        .frame(maxWidth: 300, alignment: .leading)
+        .padding(18)
+        .frame(maxWidth: 340, alignment: .leading)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -128,40 +147,46 @@ struct CameraTrainingView: View {
 
     @ViewBuilder
     private func checklistRow(title: String, isValid: Bool) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(isValid ? .green : .red)
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .font(.title3.weight(.semibold))
                 .foregroundStyle(.white)
         }
     }
 
-    private var activeChecklistItems: [(title: String, isValid: Bool)] {
-        let upperItems: [(String, Bool)] = [
+    private var wholeBodyItem: (title: String, isValid: Bool) {
+        ("Whole body visible", poseEstimatorViewModel.isBodyFullyVisible)
+    }
+
+    private var upperChecklistItems: [(title: String, isValid: Bool)] {
+        [
+            wholeBodyItem,
             ("Back arm", poseEstimatorViewModel.upperBodyIsBackArmElevated),
             ("Front arm forward", poseEstimatorViewModel.upperBodyIsFrontArmForward),
             ("Front arm angled", poseEstimatorViewModel.upperBodyIsFrontArmSlightlyBent)
         ]
+    }
 
-        let frontKneeAngle = appState.isRightHanded
-            ? poseEstimatorViewModel.lowerBodyRightKneeAngle
-            : poseEstimatorViewModel.lowerBodyLeftKneeAngle
-
-        let lowerItems: [(String, Bool)] = [
+    private var lowerChecklistItems: [(title: String, isValid: Bool)] {
+        [
+            wholeBodyItem,
             ("Legs open", poseEstimatorViewModel.lowerBodyIsStanceWide),
             ("Forward feet pointing forward", poseEstimatorViewModel.lowerBodyIsFrontLegForward),
-            ("Forward knee angled", (120...140).contains(frontKneeAngle)),
-            ("Back angled", poseEstimatorViewModel.lowerBodyIsBackLegPointingCamera)
+            ("Knees angled", poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent)
         ]
+    }
 
+    private var activeChecklistItems: [(title: String, isValid: Bool)] {
         switch appState.currentEnGardeStep {
         case .upperBody:
-            return upperItems
+            return upperChecklistItems
         case .lowerBody:
-            return lowerItems
+            return lowerChecklistItems
         case .fullPose, .completed:
-            return upperItems + lowerItems
+            return []
         }
     }
 

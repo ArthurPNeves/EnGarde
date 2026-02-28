@@ -15,12 +15,6 @@ struct RootSplitView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(detailBackground)
         }
-        .overlay(alignment: .bottomTrailing) {
-            Image(systemName: "questionmark.circle.fill")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-                .padding(14)
-        }
         .navigationSplitViewStyle(.balanced)
     }
 
