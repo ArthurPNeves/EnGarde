@@ -125,7 +125,7 @@ struct RootSplitView: View {
             case .sidebar(.camSetup):
                 CamSetupView()
             case .sidebar(.exercises):
-                ExercisesView()
+                EnGardeTutorialView()
             case .flow(.cameraSetupTutorial):
                 CamSetupView()
             case .flow(.setupCameraLive):
@@ -148,8 +148,6 @@ struct RootSplitView: View {
                 FullPoseCameraView()
             case .flow(.congrats):
                 CongratsView()
-            case .flow(.lungeUnderConstruction):
-                UnderConstructionView()
             }
         }
         .animation(.smooth, value: appState.destination)

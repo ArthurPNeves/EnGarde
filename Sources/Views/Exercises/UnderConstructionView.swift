@@ -7,9 +7,9 @@ struct UnderConstructionView: View {
         VStack(alignment: .leading, spacing: 20) {
             GlassCard {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("Lunge", systemImage: "hammer.fill")
+                    Label("En garde", systemImage: "hammer.fill")
                         .font(.largeTitle.weight(.bold))
-                    Text("This exercise is under construction. Check back soon for guided lunge feedback.")
+                    Text("This area is under construction.")
                         .font(.title3)
                         .foregroundStyle(.secondary)
                 }
@@ -17,8 +17,8 @@ struct UnderConstructionView: View {
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)
 
-            PrimaryActionButton(title: "Back to Exercises", symbolName: "arrow.left") {
-                appState.returnToExercises()
+            PrimaryActionButton(title: "Back to En garde", symbolName: "arrow.left") {
+                appState.returnToEnGarde()
             }
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)

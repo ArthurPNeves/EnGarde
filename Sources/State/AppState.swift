@@ -7,7 +7,6 @@ final class AppState: ObservableObject {
     @Published var cameraPermissionState: CameraPermissionState = .notDetermined
     @Published var selectedSidebar: SidebarItem = .welcome
     @Published var activeFlow: FlowDestination?
-    @Published var isLungeUnlocked: Bool = false
     @Published var isCameraSetupValidated: Bool = false
     @Published var currentEnGardeStep: EnGardeStep = .upperBody
     @Published var isRightHanded: Bool = true
@@ -43,7 +42,7 @@ final class AppState: ObservableObject {
 
     func navigate(to sidebar: SidebarItem) {
         selectedSidebar = sidebar
-        activeFlow = nil
+        activeFlow = (sidebar == .exercises) ? .enGardeTutorial : nil
     }
 
     func beginTrainingFromWelcome() {
@@ -116,16 +115,7 @@ final class AppState: ObservableObject {
         activeFlow = .congrats
     }
 
-    func unlockLunge() {
-        isLungeUnlocked = true
-    }
-
-    func returnToExercises() {
+    func returnToEnGarde() {
         navigate(to: .exercises)
-    }
-
-    func openLunge() {
-        guard isLungeUnlocked else { return }
-        activeFlow = .lungeUnderConstruction
     }
 }

@@ -18,7 +18,6 @@ enum FlowDestination: Equatable {
     case enGardeFullPoseTutorial
     case enGardeFullPoseCamera
     case congrats
-    case lungeUnderConstruction
 }
 
 enum NavigationDestination: Equatable {

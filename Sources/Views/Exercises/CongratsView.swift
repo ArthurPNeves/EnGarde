@@ -11,11 +11,11 @@ struct CongratsView: View {
                     Label("Congrats", systemImage: "sparkles")
                         .font(.largeTitle.weight(.bold))
 
-                    Text("You held a valid en garde stance for 5 seconds. The next drill is now unlocked.")
+                    Text("You held a valid en garde stance for 5 seconds. Great work.")
                         .font(.title3)
                         .foregroundStyle(.secondary)
 
-                    Label("Lunge unlocked", systemImage: "lock.open.fill")
+                    Label("En garde completed", systemImage: "checkmark.seal.fill")
                         .font(.headline)
                         .foregroundStyle(.green)
                 }
@@ -23,8 +23,8 @@ struct CongratsView: View {
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)
 
-            PrimaryActionButton(title: "Back to Exercises", symbolName: "list.bullet") {
-                appState.returnToExercises()
+            PrimaryActionButton(title: "Back to En garde", symbolName: "list.bullet") {
+                appState.returnToEnGarde()
             }
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -32,7 +32,6 @@ struct CongratsView: View {
         .onAppear {
             guard !didUnlock else { return }
             didUnlock = true
-            appState.unlockLunge()
         }
     }
 }

@@ -17,7 +17,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .camSetup:
             return "Cam Setup"
         case .exercises:
-            return "Exercises"
+            return "En garde"
         }
     }
 

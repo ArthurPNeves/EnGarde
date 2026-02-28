@@ -5,7 +5,7 @@ struct ExercisesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Exercises")
+            Text("En garde")
                 .font(.largeTitle.weight(.bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -17,15 +17,6 @@ struct ExercisesView: View {
                     isLocked: false
                 ) {
                     appState.startEnGardeFlow()
-                }
-
-                exerciseCard(
-                    title: "Lunge",
-                    subtitle: appState.isLungeUnlocked ? "Unlocked" : "Complete En garde first",
-                    symbolName: appState.isLungeUnlocked ? "bolt.fill" : "lock.fill",
-                    isLocked: !appState.isLungeUnlocked
-                ) {
-                    appState.openLunge()
                 }
             }
             .frame(maxWidth: 940)
