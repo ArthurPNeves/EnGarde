@@ -394,19 +394,19 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let leftKneeAngle = angleDegrees(a: leftHip.location, b: leftKnee.location, c: leftAnkle.location)
         let rightKneeAngle = angleDegrees(a: rightHip.location, b: rightKnee.location, c: rightAnkle.location)
 
-        let kneesDeeplyBent = (120...160).contains(leftKneeAngle) && (120...150).contains(rightKneeAngle)
+        let kneesDeeplyBent = (120...170).contains(leftKneeAngle) && (120...160).contains(rightKneeAngle)
 
         let ankleDistance = distance(leftAnkle.location, rightAnkle.location)
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)
         let stanceWide = ankleDistance > shoulderDistance
 
         // Same forward-direction logic pattern used for upper body.
-        let frontLegDirectionX = -(frontAnklePoint.location.x - frontKneePoint.location.x)
+        let frontLegDirectionX = (frontAnklePoint.location.x - frontKneePoint.location.x)
         let isFrontLegForward = isRightHandedStance ? (frontLegDirectionX > 0.06) : (frontLegDirectionX < -0.06)
 
         // Back leg should point to camera: keep knee/ankle x nearly aligned.
         let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
-        let isBackLegPointingCamera = abs(backLegDirectionX) < 0.05
+        let isBackLegPointingCamera = (backLegDirectionX < 0.05 && backLegDirectionX > -0.05)
 
         maybePublishLowerBodyDebugMetrics(
             leftKneeAngle: leftKneeAngle,
