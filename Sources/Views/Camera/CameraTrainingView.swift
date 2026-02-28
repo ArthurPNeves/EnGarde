@@ -33,11 +33,7 @@ struct CameraTrainingView: View {
                 }
 
                 if mode == .enGarde {
-                    enGardeChecklist
-                }
-
-                if showUpperBodyDebugPanel {
-                    upperBodyDebugPanel
+                    validationAndDebugSection
                 }
 
                 holdProgress
@@ -113,6 +109,20 @@ struct CameraTrainingView: View {
         }
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var validationAndDebugSection: some View {
+        if showUpperBodyDebugPanel {
+            HStack(alignment: .top, spacing: 12) {
+                enGardeChecklist
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                upperBodyDebugPanel
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+        } else {
+            enGardeChecklist
+        }
     }
 
     @ViewBuilder
