@@ -21,24 +21,9 @@ struct RootSplitView: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 12) {
-                    Text("EG")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 42, height: 42)
-                        .background(
-                            Circle()
-                                .fill(Color(red: 0.12, green: 0.31, blue: 0.63))
-                        )
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("EG")
-                            .font(.headline.weight(.semibold))
-                        Text("version 1")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                ResourceImageView(name: "logo")
+                    .scaledToFit()
+                    .frame(width: 120, height: 48, alignment: .leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)

@@ -44,6 +44,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published private(set) var lowerBodyMetricsUpdatedAt: Date?
     @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
     @Published private(set) var isRightHandedStance: Bool = true
+        @Published private(set) var skeletonPoints: [VNHumanBodyPoseObservation.JointName: CGPoint] = [:]
     @Published private(set) var holdProgress: Double = 0
     @Published private(set) var didHoldTargetForRequiredDuration: Bool = false
     @Published private(set) var errorMessage: String?
@@ -245,6 +246,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     private func setPermissionDeniedState() {
         errorMessage = "Camera permission denied. Enable camera access in System Settings."
         isBodyFullyVisible = false
+        skeletonPoints = [:]
         setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false
@@ -264,9 +266,12 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                 guard
                     let observation = (request.results as? [VNHumanBodyPoseObservation])?.first
                 else {
+                    self.publishSkeletonPoints(nil)
                     self.applyFrameEvaluation(isValid: false, upperValid: false, lowerValid: false, fullVisible: false)
                     return
                 }
+
+                self.publishSkeletonPoints(observation)
 
                 if self.mode == .setup {
                     let wholeBodyVisible = self.hasRequiredBoundaryJoints(in: observation)
@@ -302,8 +307,41 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                     )
                 }
             } catch {
+                self.publishSkeletonPoints(nil)
                 self.applyFrameEvaluation(isValid: false, upperValid: false, lowerValid: false, fullVisible: false)
             }
+        }
+    }
+
+    private func publishSkeletonPoints(_ observation: VNHumanBodyPoseObservation?) {
+        guard
+            let observation,
+            let points = try? observation.recognizedPoints(.all)
+        else {
+            DispatchQueue.main.async { [weak self] in
+                self?.skeletonPoints = [:]
+            }
+            return
+        }
+
+        let joints: [VNHumanBodyPoseObservation.JointName] = [
+            .neck,
+            .leftShoulder, .rightShoulder,
+            .leftElbow, .rightElbow,
+            .leftWrist, .rightWrist,
+            .leftHip, .rightHip,
+            .leftKnee, .rightKnee,
+            .leftAnkle, .rightAnkle
+        ]
+
+        var mapped: [VNHumanBodyPoseObservation.JointName: CGPoint] = [:]
+        for joint in joints {
+            guard let point = points[joint], point.confidence > 0.2 else { continue }
+            mapped[joint] = point.location
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            self?.skeletonPoints = mapped
         }
     }
 
@@ -335,7 +373,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let isFrontArmForward = isRightHandedStance ? (frontDirectionX > 0.06) : (frontDirectionX < -0.06)
 
         let frontArmAngle = angleDegrees(a: frontShoulderPoint.location, b: frontElbowPoint.location, c: frontWristPoint.location)
-        let isFrontArmSlightlyBent = (frontArmAngle > 90 && frontArmAngle < 110)
+        let isFrontArmSlightlyBent = (frontArmAngle > 90 && frontArmAngle < 125)
 
         let isBackArmElevated = backWristPoint.location.y > (backShoulderPoint.location.y - 0.05)
 
@@ -558,6 +596,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         lowerBodyShoulderDistance = 0
         lowerBodyIsStanceWide = false
         lowerBodyMetricsUpdatedAt = nil
+        skeletonPoints = [:]
         setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false

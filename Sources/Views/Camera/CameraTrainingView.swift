@@ -1,4 +1,5 @@
 import SwiftUI
+import Vision
 
 struct CameraTrainingView: View {
     let mode: PoseTrainingMode
@@ -13,6 +14,12 @@ struct CameraTrainingView: View {
         ZStack {
             CameraPreviewView(session: poseEstimatorViewModel.captureSession)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            PoseSkeletonOverlayView(
+                points: poseEstimatorViewModel.skeletonPoints,
+                segments: activeSkeletonSegments
+            )
+            .allowsHitTesting(false)
 
             LinearGradient(
                 colors: [Color.black.opacity(0.35), Color.clear, Color.black.opacity(0.45)],
@@ -161,6 +168,62 @@ struct CameraTrainingView: View {
             wholeBodyItem,
             ("Legs open", poseEstimatorViewModel.lowerBodyIsStanceWide),
             ("Knees angled", poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent)
+        ]
+    }
+
+    private var activeSkeletonSegments: [PoseSkeletonOverlayView.Segment] {
+        switch appState.currentEnGardeStep {
+        case .upperBody:
+            return upperSkeletonSegments
+        case .lowerBody:
+            return lowerSkeletonSegments
+        case .fullPose, .completed:
+            return upperSkeletonSegments + lowerSkeletonSegments
+        }
+    }
+
+    private var upperSkeletonSegments: [PoseSkeletonOverlayView.Segment] {
+        [
+            .init(id: "u-neck-lshoulder", from: .neck, to: .leftShoulder, color: .gray.opacity(0.7)),
+            .init(id: "u-neck-rshoulder", from: .neck, to: .rightShoulder, color: .gray.opacity(0.7)),
+            .init(id: "u-shoulders", from: .leftShoulder, to: .rightShoulder, color: .gray.opacity(0.7)),
+
+            .init(
+                id: "u-front-shoulder-elbow",
+                from: appState.isRightHanded ? .rightShoulder : .leftShoulder,
+                to: appState.isRightHanded ? .rightElbow : .leftElbow,
+                color: poseEstimatorViewModel.upperBodyIsFrontArmSlightlyBent ? .green : .red
+            ),
+            .init(
+                id: "u-front-elbow-wrist",
+                from: appState.isRightHanded ? .rightElbow : .leftElbow,
+                to: appState.isRightHanded ? .rightWrist : .leftWrist,
+                color: poseEstimatorViewModel.upperBodyIsFrontArmForward ? .green : .red
+            ),
+            .init(
+                id: "u-back-shoulder-elbow",
+                from: appState.isRightHanded ? .leftShoulder : .rightShoulder,
+                to: appState.isRightHanded ? .leftElbow : .rightElbow,
+                color: poseEstimatorViewModel.upperBodyIsBackArmElevated ? .green : .red
+            ),
+            .init(
+                id: "u-back-elbow-wrist",
+                from: appState.isRightHanded ? .leftElbow : .rightElbow,
+                to: appState.isRightHanded ? .leftWrist : .rightWrist,
+                color: poseEstimatorViewModel.upperBodyIsBackArmElevated ? .green : .red
+            )
+        ]
+    }
+
+    private var lowerSkeletonSegments: [PoseSkeletonOverlayView.Segment] {
+        [
+            .init(id: "l-neck-lhip", from: .neck, to: .leftHip, color: .gray.opacity(0.7)),
+            .init(id: "l-neck-rhip", from: .neck, to: .rightHip, color: .gray.opacity(0.7)),
+            .init(id: "l-hips", from: .leftHip, to: .rightHip, color: .gray.opacity(0.7)),
+            .init(id: "l-lhip-lknee", from: .leftHip, to: .leftKnee, color: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent ? .green : .red),
+            .init(id: "l-rhip-rknee", from: .rightHip, to: .rightKnee, color: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent ? .green : .red),
+            .init(id: "l-lknee-lankle", from: .leftKnee, to: .leftAnkle, color: poseEstimatorViewModel.lowerBodyIsStanceWide ? .green : .red),
+            .init(id: "l-rknee-rankle", from: .rightKnee, to: .rightAnkle, color: poseEstimatorViewModel.lowerBodyIsStanceWide ? .green : .red)
         ]
     }
 
