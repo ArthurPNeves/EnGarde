@@ -15,36 +15,40 @@ struct CameraTrainingView: View {
                 .font(.largeTitle.weight(.bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 20) {
-                statusBanner
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    statusBanner
 
-                CameraPreviewView(session: poseEstimatorViewModel.captureSession)
-                    .frame(maxWidth: .infinity, minHeight: 360)
-                    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 26, style: .continuous)
-                            .strokeBorder(.white.opacity(0.16), lineWidth: 1)
-                    )
+                    CameraPreviewView(session: poseEstimatorViewModel.captureSession)
+                        .frame(maxWidth: .infinity, minHeight: 360)
+                        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                                .strokeBorder(.white.opacity(0.16), lineWidth: 1)
+                        )
 
-                if let errorMessage = poseEstimatorViewModel.errorMessage {
-                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-                }
-
-                if mode == .enGarde {
-                    validationAndDebugSection
-                }
-
-                holdProgress
-
-                if showNextButton {
-                    PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
-                        onComplete()
+                    if let errorMessage = poseEstimatorViewModel.errorMessage {
+                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
                     }
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+
+                    if mode == .enGarde {
+                        validationAndDebugSection
+                    }
+
+                    holdProgress
+
+                    if showNextButton {
+                        PrimaryActionButton(title: nextButtonTitle, symbolName: "arrow.right") {
+                            onComplete()
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollIndicators(.hidden)
             .frame(maxWidth: 960)
             .frame(maxWidth: .infinity, alignment: .center)
         }
