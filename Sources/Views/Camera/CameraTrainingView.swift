@@ -113,33 +113,33 @@ struct CameraTrainingView: View {
     }
 
     private func checklistPanel(title: String?, items: [(title: String, isValid: Bool)]) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 18) {
             if let title {
                 Text(title)
-                    .font(.title1.weight(.bold))
+                    .font(.largeTitle.weight(.black))
                     .foregroundStyle(.white)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, 6)
             }
 
             ForEach(items, id: \.title) { item in
                 checklistRow(title: item.title, isValid: item.isValid)
             }
         }
-        .padding(24)
-        .frame(maxWidth: 420, alignment: .leading)
+        .padding(30)
+        .frame(maxWidth: 520, alignment: .leading)
     }
 
     @ViewBuilder
     private func checklistRow(title: String, isValid: Bool) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .font(.title2.weight(.bold))
+                .font(.largeTitle.weight(.black))
                 .foregroundStyle(isValid ? .green : .red)
             Text(title)
-                .font(.title2.weight(.bold))
+                .font(.title.weight(.black))
                 .foregroundStyle(.white)
-                .lineLimit(2)
-                .minimumScaleFactor(0.9)
+                .lineLimit(3)
+                .minimumScaleFactor(0.85)
         }
     }
 
