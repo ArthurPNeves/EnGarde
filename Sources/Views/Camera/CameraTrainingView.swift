@@ -160,7 +160,6 @@ struct CameraTrainingView: View {
         [
             wholeBodyItem,
             ("Legs open", poseEstimatorViewModel.lowerBodyIsStanceWide),
-            ("Forward feet pointing forward", poseEstimatorViewModel.lowerBodyIsFrontLegForward),
             ("Knees angled", poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent)
         ]
     }
