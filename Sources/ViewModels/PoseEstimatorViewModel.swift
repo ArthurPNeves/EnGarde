@@ -28,6 +28,13 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published var isEnGardePoseCorrect: Bool = false
     @Published private(set) var isUpperBodyValid: Bool = false
     @Published private(set) var isLowerBodyValid: Bool = false
+    @Published private(set) var upperBodyFrontDirectionX: Double = 0
+    @Published private(set) var upperBodyIsFrontArmForward: Bool = false
+    @Published private(set) var upperBodyFrontArmAngle: Double = 0
+    @Published private(set) var upperBodyIsFrontArmSlightlyBent: Bool = false
+    @Published private(set) var upperBodyBackWristLiftDelta: Double = 0
+    @Published private(set) var upperBodyIsBackArmElevated: Bool = false
+    @Published private(set) var upperBodyMetricsUpdatedAt: Date?
     @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
     @Published private(set) var isRightHandedStance: Bool = true
     @Published private(set) var holdProgress: Double = 0
@@ -43,6 +50,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     private var holdStartDate: Date?
     private var hasAppliedSuccessSideEffects = false
     private let holdDuration: TimeInterval = 5.0
+    private var nextUpperBodyDebugPublishDate: Date = .distantPast
 
     private weak var appState: AppState?
     private weak var audioPlayerViewModel: AudioPlayerViewModel?
@@ -307,6 +315,16 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
         let isBackArmElevated = backWristPoint.location.y > (backShoulderPoint.location.y - 0.05)
 
+        let backWristLiftDelta = backWristPoint.location.y - (backShoulderPoint.location.y - 0.05)
+        maybePublishUpperBodyDebugMetrics(
+            frontDirectionX: frontDirectionX,
+            isFrontArmForward: isFrontArmForward,
+            frontArmAngle: frontArmAngle,
+            isFrontArmSlightlyBent: isFrontArmSlightlyBent,
+            backWristLiftDelta: backWristLiftDelta,
+            isBackArmElevated: isBackArmElevated
+        )
+
         return isFrontArmForward && isFrontArmSlightlyBent && isBackArmElevated
     }
 
@@ -490,12 +508,20 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         isEnGardePoseCorrect = false
         isUpperBodyValid = false
         isLowerBodyValid = false
+        upperBodyFrontDirectionX = 0
+        upperBodyIsFrontArmForward = false
+        upperBodyFrontArmAngle = 0
+        upperBodyIsFrontArmSlightlyBent = false
+        upperBodyBackWristLiftDelta = 0
+        upperBodyIsBackArmElevated = false
+        upperBodyMetricsUpdatedAt = nil
         setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false
         holdStartDate = nil
         hasAppliedSuccessSideEffects = false
         errorMessage = nil
+        nextUpperBodyDebugPublishDate = .distantPast
         appState?.isCameraSetupValidated = false
         invalidateHoldTimer()
     }
@@ -505,6 +531,30 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         guard let appState else { return }
         activeEnGardeStep = appState.currentEnGardeStep
         isRightHandedStance = appState.isRightHanded
+    }
+
+    private func maybePublishUpperBodyDebugMetrics(
+        frontDirectionX: CGFloat,
+        isFrontArmForward: Bool,
+        frontArmAngle: Double,
+        isFrontArmSlightlyBent: Bool,
+        backWristLiftDelta: CGFloat,
+        isBackArmElevated: Bool
+    ) {
+        let now = Date()
+        guard now >= nextUpperBodyDebugPublishDate else { return }
+        nextUpperBodyDebugPublishDate = now.addingTimeInterval(3)
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.upperBodyFrontDirectionX = frontDirectionX
+            self.upperBodyIsFrontArmForward = isFrontArmForward
+            self.upperBodyFrontArmAngle = frontArmAngle
+            self.upperBodyIsFrontArmSlightlyBent = isFrontArmSlightlyBent
+            self.upperBodyBackWristLiftDelta = backWristLiftDelta
+            self.upperBodyIsBackArmElevated = isBackArmElevated
+            self.upperBodyMetricsUpdatedAt = now
+        }
     }
 
     private func angleDegrees(a: CGPoint, b: CGPoint, c: CGPoint) -> Double {

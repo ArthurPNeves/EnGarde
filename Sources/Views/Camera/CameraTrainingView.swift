@@ -36,6 +36,10 @@ struct CameraTrainingView: View {
                     enGardeChecklist
                 }
 
+                if showUpperBodyDebugPanel {
+                    upperBodyDebugPanel
+                }
+
                 holdProgress
 
                 if showNextButton {
@@ -127,6 +131,62 @@ struct CameraTrainingView: View {
             return appState.isCameraSetupValidated
         }
         return poseEstimatorViewModel.didHoldTargetForRequiredDuration
+    }
+
+    private var showUpperBodyDebugPanel: Bool {
+        mode == .enGarde && appState.currentEnGardeStep == .upperBody
+    }
+
+    private var upperBodyDebugPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Upper Body Metrics (updates every 3s)")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            metricRow(
+                label: "frontDirectionX",
+                value: String(format: "%.3f", poseEstimatorViewModel.upperBodyFrontDirectionX),
+                passed: poseEstimatorViewModel.upperBodyIsFrontArmForward
+            )
+
+            metricRow(
+                label: "frontArmAngle",
+                value: String(format: "%.1f°", poseEstimatorViewModel.upperBodyFrontArmAngle),
+                passed: poseEstimatorViewModel.upperBodyIsFrontArmSlightlyBent
+            )
+
+            metricRow(
+                label: "backWristLiftDelta",
+                value: String(format: "%.3f", poseEstimatorViewModel.upperBodyBackWristLiftDelta),
+                passed: poseEstimatorViewModel.upperBodyIsBackArmElevated
+            )
+
+            if let updatedAt = poseEstimatorViewModel.upperBodyMetricsUpdatedAt {
+                Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func metricRow(label: String, value: String, passed: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: passed ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .foregroundStyle(passed ? .green : .red)
+
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text(value)
+                .font(.system(.subheadline, design: .monospaced))
+                .foregroundStyle(.primary)
+        }
     }
 
     private var cameraTitle: String {
