@@ -9,6 +9,8 @@ final class AppState: ObservableObject {
     @Published var activeFlow: FlowDestination?
     @Published var isLungeUnlocked: Bool = false
     @Published var isCameraSetupValidated: Bool = false
+    @Published var currentEnGardeStep: EnGardeStep = .upperBody
+    @Published var isRightHanded: Bool = true
 
     var destination: NavigationDestination {
         if let activeFlow {
@@ -63,11 +65,51 @@ final class AppState: ObservableObject {
     }
 
     func startEnGardeFlow() {
+        currentEnGardeStep = .upperBody
         activeFlow = .enGardeTutorial
     }
 
-    func openEnGardeCamera() {
-        activeFlow = .enGardeCamera
+    func openEnGardeUpperBodyTutorial() {
+        currentEnGardeStep = .upperBody
+        activeFlow = .enGardeUpperBodyTutorial
+    }
+
+    func openEnGardeUpperBodyCamera() {
+        currentEnGardeStep = .upperBody
+        activeFlow = .enGardeUpperBodyCamera
+    }
+
+    func openEnGardeLowerBodyTutorial() {
+        currentEnGardeStep = .lowerBody
+        activeFlow = .enGardeLowerBodyTutorial
+    }
+
+    func openEnGardeLowerBodyCamera() {
+        currentEnGardeStep = .lowerBody
+        activeFlow = .enGardeLowerBodyCamera
+    }
+
+    func openEnGardeFullPoseTutorial() {
+        currentEnGardeStep = .fullPose
+        activeFlow = .enGardeFullPoseTutorial
+    }
+
+    func openEnGardeFullPoseCamera() {
+        currentEnGardeStep = .fullPose
+        activeFlow = .enGardeFullPoseCamera
+    }
+
+    func completeEnGardeUpperBodyStep() {
+        openEnGardeLowerBodyTutorial()
+    }
+
+    func completeEnGardeLowerBodyStep() {
+        openEnGardeFullPoseTutorial()
+    }
+
+    func completeEnGardeFullPoseStep() {
+        currentEnGardeStep = .completed
+        showCongrats()
     }
 
     func showCongrats() {

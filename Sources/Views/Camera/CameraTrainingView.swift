@@ -11,7 +11,7 @@ struct CameraTrainingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text(mode == .setup ? "Camera Check" : "En garde Check")
+            Text(cameraTitle)
                 .font(.largeTitle.weight(.bold))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -91,11 +91,19 @@ struct CameraTrainingView: View {
     private var enGardeChecklist: some View {
         VStack(alignment: .leading, spacing: 10) {
             checklistRow(
+                title: "Upper body validated",
+                isValid: poseEstimatorViewModel.isUpperBodyValid
+            )
+            checklistRow(
+                title: "Lower body validated",
+                isValid: poseEstimatorViewModel.isLowerBodyValid
+            )
+            checklistRow(
                 title: "Full body visible",
                 isValid: poseEstimatorViewModel.isBodyFullyVisible
             )
             checklistRow(
-                title: "En garde alignment (knees, feet, elbow)",
+                title: "Current step passed",
                 isValid: poseEstimatorViewModel.isEnGardePoseCorrect
             )
         }
@@ -119,6 +127,21 @@ struct CameraTrainingView: View {
             return appState.isCameraSetupValidated
         }
         return poseEstimatorViewModel.didHoldTargetForRequiredDuration
+    }
+
+    private var cameraTitle: String {
+        guard mode == .enGarde else { return "Camera Check" }
+
+        switch appState.currentEnGardeStep {
+        case .upperBody:
+            return "En garde · Upper Body"
+        case .lowerBody:
+            return "En garde · Lower Body"
+        case .fullPose:
+            return "En garde · Full Pose"
+        case .completed:
+            return "En garde · Complete"
+        }
     }
 
     private var statusColor: Color {

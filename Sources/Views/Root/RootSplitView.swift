@@ -140,10 +140,18 @@ struct RootSplitView: View {
                 }
             case .flow(.enGardeTutorial):
                 EnGardeTutorialView()
-            case .flow(.enGardeCamera):
-                CameraTrainingView(mode: .enGarde, nextButtonTitle: "View Result") {
-                    appState.showCongrats()
-                }
+            case .flow(.enGardeUpperBodyTutorial):
+                UpperBodyTutorialView()
+            case .flow(.enGardeUpperBodyCamera):
+                UpperBodyCameraView()
+            case .flow(.enGardeLowerBodyTutorial):
+                LowerBodyTutorialView()
+            case .flow(.enGardeLowerBodyCamera):
+                LowerBodyCameraView()
+            case .flow(.enGardeFullPoseTutorial):
+                FullPoseTutorialView()
+            case .flow(.enGardeFullPoseCamera):
+                FullPoseCameraView()
             case .flow(.congrats):
                 CongratsView()
             case .flow(.lungeUnderConstruction):
