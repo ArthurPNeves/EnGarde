@@ -116,7 +116,7 @@ struct CameraTrainingView: View {
         VStack(alignment: .leading, spacing: 14) {
             if let title {
                 Text(title)
-                    .font(.title2.weight(.bold))
+                    .font(.title1.weight(.bold))
                     .foregroundStyle(.white)
                     .padding(.bottom, 4)
             }
