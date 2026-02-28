@@ -23,14 +23,9 @@ struct CameraTrainingView: View {
 
             VStack(spacing: 0) {
                 HStack(alignment: .top) {
-                    statusIndicatorButton
-
                     if mode == .enGarde {
                         enGardeChecklistOverlay
-                            .padding(.leading, 12)
                     }
-
-                    Spacer()
                 }
                 .padding(16)
 
@@ -88,25 +83,16 @@ struct CameraTrainingView: View {
         }
     }
 
-    private var statusIndicatorButton: some View {
-        Button(action: {}) {
-            Circle()
-                .fill(statusDotColor)
-                .frame(width: 24, height: 24)
-                .overlay(
-                    Circle()
-                        .strokeBorder(.white.opacity(0.6), lineWidth: 1)
-                )
-                .shadow(color: statusDotColor.opacity(0.6), radius: 8)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(poseEstimatorViewModel.statusText)
-    }
-
     private var holdProgressLine: some View {
         VStack(spacing: 0) {
             ProgressView(value: poseEstimatorViewModel.holdProgress)
-                .tint(.green)
+                .tint(poseEstimatorViewModel.setupState == .success ? .green : .yellow)
+                .shadow(
+                    color: poseEstimatorViewModel.setupState == .inFrame ? .yellow.opacity(0.95) : .clear,
+                    radius: 8,
+                    x: 0,
+                    y: 0
+                )
         }
         .progressViewStyle(.linear)
     }
@@ -116,10 +102,13 @@ struct CameraTrainingView: View {
         if appState.currentEnGardeStep == .fullPose || appState.currentEnGardeStep == .completed {
             HStack(alignment: .top, spacing: 14) {
                 checklistPanel(title: "Upper Body", items: upperChecklistItems)
+                Spacer(minLength: 14)
                 checklistPanel(title: "Lower Body", items: lowerChecklistItems)
             }
+            .frame(maxWidth: .infinity, alignment: .top)
         } else {
             checklistPanel(title: nil, items: activeChecklistItems)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
         }
     }
 
@@ -138,11 +127,6 @@ struct CameraTrainingView: View {
         }
         .padding(18)
         .frame(maxWidth: 340, alignment: .leading)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-        )
     }
 
     @ViewBuilder
@@ -197,29 +181,4 @@ struct CameraTrainingView: View {
         return poseEstimatorViewModel.didHoldTargetForRequiredDuration
     }
 
-    private var cameraTitle: String {
-        guard mode == .enGarde else { return "Camera Check" }
-
-        switch appState.currentEnGardeStep {
-        case .upperBody:
-            return "En garde · Upper Body"
-        case .lowerBody:
-            return "En garde · Lower Body"
-        case .fullPose:
-            return "En garde · Full Pose"
-        case .completed:
-            return "En garde · Complete"
-        }
-    }
-
-    private var statusDotColor: Color {
-        switch poseEstimatorViewModel.setupState {
-        case .searching:
-            return .red
-        case .inFrame:
-            return .yellow
-        case .success:
-            return .green
-        }
-    }
 }

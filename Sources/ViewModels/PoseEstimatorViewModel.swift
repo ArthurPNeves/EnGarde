@@ -440,44 +440,14 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
         let minimumConfidence: Float = 0.3
 
-        let hasNose = hasPoint(.nose, points: points, minimumConfidence: 0.4)
-        let hasLeftAnkle = hasReliableAnkle(
-            ankle: .leftAnkle,
-            knee: .leftKnee,
-            points: points,
-            minimumConfidence: max(minimumConfidence, 0.45)
-        )
-        let hasRightAnkle = hasReliableAnkle(
-            ankle: .rightAnkle,
-            knee: .rightKnee,
-            points: points,
-            minimumConfidence: max(minimumConfidence, 0.45)
-        )
+        let hasNeck = hasPoint(.neck, points: points, minimumConfidence: minimumConfidence)
+        let hasLeftAnkle = hasPoint(.leftAnkle, points: points, minimumConfidence: minimumConfidence)
+        let hasRightAnkle = hasPoint(.rightAnkle, points: points, minimumConfidence: minimumConfidence)
         let hasLeftWrist = hasPoint(.leftWrist, points: points, minimumConfidence: minimumConfidence)
         let hasRightWrist = hasPoint(.rightWrist, points: points, minimumConfidence: minimumConfidence)
 
-        // Backend boundary check: nose + wrists + both reliable ankles.
-        return hasNose && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
-    }
-
-    private func hasReliableAnkle(
-        ankle: VNHumanBodyPoseObservation.JointName,
-        knee: VNHumanBodyPoseObservation.JointName,
-        points: [VNHumanBodyPoseObservation.JointName: VNRecognizedPoint],
-        minimumConfidence: Float
-    ) -> Bool {
-        guard
-            let anklePoint = points[ankle],
-            let kneePoint = points[knee],
-            anklePoint.confidence > minimumConfidence,
-            kneePoint.confidence > 0.3
-        else {
-            return false
-        }
-
-        // Reduce shin-as-ankle false positives: true ankle should be clearly below its knee.
-        let requiredVerticalGap: CGFloat = 0.035
-        return anklePoint.location.y < (kneePoint.location.y - requiredVerticalGap)
+        // Backend boundary check: neck + wrists + ankles.
+        return hasNeck && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
     }
 
     private func hasPoint(
