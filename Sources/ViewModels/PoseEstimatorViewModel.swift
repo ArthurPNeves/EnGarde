@@ -35,6 +35,13 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published private(set) var upperBodyBackWristLiftDelta: Double = 0
     @Published private(set) var upperBodyIsBackArmElevated: Bool = false
     @Published private(set) var upperBodyMetricsUpdatedAt: Date?
+    @Published private(set) var lowerBodyLeftKneeAngle: Double = 0
+    @Published private(set) var lowerBodyRightKneeAngle: Double = 0
+    @Published private(set) var lowerBodyAreKneesDeeplyBent: Bool = false
+    @Published private(set) var lowerBodyAnkleDistance: Double = 0
+    @Published private(set) var lowerBodyShoulderDistance: Double = 0
+    @Published private(set) var lowerBodyIsStanceWide: Bool = false
+    @Published private(set) var lowerBodyMetricsUpdatedAt: Date?
     @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
     @Published private(set) var isRightHandedStance: Bool = true
     @Published private(set) var holdProgress: Double = 0
@@ -51,6 +58,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     private var hasAppliedSuccessSideEffects = false
     private let holdDuration: TimeInterval = 5.0
     private var nextUpperBodyDebugPublishDate: Date = .distantPast
+    private var nextLowerBodyDebugPublishDate: Date = .distantPast
 
     private weak var appState: AppState?
     private weak var audioPlayerViewModel: AudioPlayerViewModel?
@@ -364,6 +372,15 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)
         let stanceWide = ankleDistance > shoulderDistance
 
+        maybePublishLowerBodyDebugMetrics(
+            leftKneeAngle: leftKneeAngle,
+            rightKneeAngle: rightKneeAngle,
+            kneesDeeplyBent: kneesDeeplyBent,
+            ankleDistance: ankleDistance,
+            shoulderDistance: shoulderDistance,
+            stanceWide: stanceWide
+        )
+
         return kneesDeeplyBent && stanceWide
     }
 
@@ -515,6 +532,13 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         upperBodyBackWristLiftDelta = 0
         upperBodyIsBackArmElevated = false
         upperBodyMetricsUpdatedAt = nil
+        lowerBodyLeftKneeAngle = 0
+        lowerBodyRightKneeAngle = 0
+        lowerBodyAreKneesDeeplyBent = false
+        lowerBodyAnkleDistance = 0
+        lowerBodyShoulderDistance = 0
+        lowerBodyIsStanceWide = false
+        lowerBodyMetricsUpdatedAt = nil
         setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false
@@ -522,6 +546,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         hasAppliedSuccessSideEffects = false
         errorMessage = nil
         nextUpperBodyDebugPublishDate = .distantPast
+        nextLowerBodyDebugPublishDate = .distantPast
         appState?.isCameraSetupValidated = false
         invalidateHoldTimer()
     }
@@ -554,6 +579,30 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             self.upperBodyBackWristLiftDelta = backWristLiftDelta
             self.upperBodyIsBackArmElevated = isBackArmElevated
             self.upperBodyMetricsUpdatedAt = now
+        }
+    }
+
+    private func maybePublishLowerBodyDebugMetrics(
+        leftKneeAngle: Double,
+        rightKneeAngle: Double,
+        kneesDeeplyBent: Bool,
+        ankleDistance: CGFloat,
+        shoulderDistance: CGFloat,
+        stanceWide: Bool
+    ) {
+        let now = Date()
+        guard now >= nextLowerBodyDebugPublishDate else { return }
+        nextLowerBodyDebugPublishDate = now.addingTimeInterval(3)
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.lowerBodyLeftKneeAngle = leftKneeAngle
+            self.lowerBodyRightKneeAngle = rightKneeAngle
+            self.lowerBodyAreKneesDeeplyBent = kneesDeeplyBent
+            self.lowerBodyAnkleDistance = ankleDistance
+            self.lowerBodyShoulderDistance = shoulderDistance
+            self.lowerBodyIsStanceWide = stanceWide
+            self.lowerBodyMetricsUpdatedAt = now
         }
     }
 

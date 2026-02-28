@@ -117,11 +117,11 @@ struct CameraTrainingView: View {
 
     @ViewBuilder
     private var validationAndDebugSection: some View {
-        if showUpperBodyDebugPanel {
+        if showUpperBodyDebugPanel || showLowerBodyDebugPanel {
             HStack(alignment: .top, spacing: 12) {
                 enGardeChecklist
                     .frame(maxWidth: .infinity, alignment: .topLeading)
-                upperBodyDebugPanel
+                debugPanel
                     .frame(maxWidth: .infinity, alignment: .topLeading)
             }
         } else {
@@ -151,6 +151,19 @@ struct CameraTrainingView: View {
         mode == .enGarde && appState.currentEnGardeStep == .upperBody
     }
 
+    private var showLowerBodyDebugPanel: Bool {
+        mode == .enGarde && appState.currentEnGardeStep == .lowerBody
+    }
+
+    @ViewBuilder
+    private var debugPanel: some View {
+        if showUpperBodyDebugPanel {
+            upperBodyDebugPanel
+        } else if showLowerBodyDebugPanel {
+            lowerBodyDebugPanel
+        }
+    }
+
     private var upperBodyDebugPanel: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Upper Body Metrics (updates every 3s)")
@@ -176,6 +189,46 @@ struct CameraTrainingView: View {
             )
 
             if let updatedAt = poseEstimatorViewModel.upperBodyMetricsUpdatedAt {
+                Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var lowerBodyDebugPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Lower Body Metrics (updates every 3s)")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            metricRow(
+                label: "leftKneeAngle",
+                value: String(format: "%.1f°", poseEstimatorViewModel.lowerBodyLeftKneeAngle),
+                passed: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent
+            )
+
+            metricRow(
+                label: "rightKneeAngle",
+                value: String(format: "%.1f°", poseEstimatorViewModel.lowerBodyRightKneeAngle),
+                passed: poseEstimatorViewModel.lowerBodyAreKneesDeeplyBent
+            )
+
+            metricRow(
+                label: "ankleDistance",
+                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyAnkleDistance),
+                passed: poseEstimatorViewModel.lowerBodyIsStanceWide
+            )
+
+            metricRow(
+                label: "shoulderDistance",
+                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyShoulderDistance),
+                passed: poseEstimatorViewModel.lowerBodyIsStanceWide
+            )
+
+            if let updatedAt = poseEstimatorViewModel.lowerBodyMetricsUpdatedAt {
                 Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
