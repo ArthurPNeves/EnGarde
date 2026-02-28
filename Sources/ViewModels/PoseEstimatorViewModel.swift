@@ -307,11 +307,11 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             return false
         }
 
-        let frontDirectionX = frontWristPoint.location.x - frontShoulderPoint.location.x
+        let frontDirectionX = -(frontWristPoint.location.x - frontShoulderPoint.location.x)
         let isFrontArmForward = isRightHandedStance ? (frontDirectionX > 0.06) : (frontDirectionX < -0.06)
 
         let frontArmAngle = angleDegrees(a: frontShoulderPoint.location, b: frontElbowPoint.location, c: frontWristPoint.location)
-        let isFrontArmSlightlyBent = (frontArmAngle > 145 && frontArmAngle < 178)
+        let isFrontArmSlightlyBent = (frontArmAngle > 90 && frontArmAngle < 110)
 
         let isBackArmElevated = backWristPoint.location.y > (backShoulderPoint.location.y - 0.05)
 
