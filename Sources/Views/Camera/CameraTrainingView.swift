@@ -103,7 +103,7 @@ struct CameraTrainingView: View {
                 isValid: poseEstimatorViewModel.isLowerBodyValid
             )
             checklistRow(
-                title: "Full body visible",
+                title: "Neck-to-feet visible",
                 isValid: poseEstimatorViewModel.isBodyFullyVisible
             )
             checklistRow(

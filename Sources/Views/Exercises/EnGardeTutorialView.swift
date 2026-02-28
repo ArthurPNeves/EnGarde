@@ -30,7 +30,7 @@ struct EnGardeTutorialView: View {
                             checklistRow(symbol: "checkmark.circle.fill", text: "Knees bent and stable")
                             checklistRow(symbol: "checkmark.circle.fill", text: "Feet in balanced split stance")
                             checklistRow(symbol: "checkmark.circle.fill", text: "Weapon arm aligned forward")
-                            checklistRow(symbol: "camera.viewfinder", text: "Camera framing: knees (or mid-shin) to head")
+                            checklistRow(symbol: "camera.viewfinder", text: "Camera framing: top of neck to feet")
                         }
 
                         Toggle(isOn: $appState.isRightHanded) {

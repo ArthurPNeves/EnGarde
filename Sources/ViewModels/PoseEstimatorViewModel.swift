@@ -402,7 +402,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
         // Same forward-direction logic pattern used for upper body.
         let frontLegDirectionX = (frontAnklePoint.location.x - frontKneePoint.location.x)
-        let isFrontLegForward = isRightHandedStance ? (frontLegDirectionX > 0.06) : (frontLegDirectionX < -0.06)
+        let isFrontLegForward = isRightHandedStance ? (frontLegDirectionX > 0.02) : (frontLegDirectionX < -0.02)
 
         // Back leg should point to camera: keep knee/ankle x nearly aligned.
         let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
@@ -435,13 +435,14 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
         let minimumConfidence: Float = 0.3
 
-        let hasNose = hasPoint(.nose, points: points, minimumConfidence: minimumConfidence)
+        let hasNeck = hasPoint(.neck, points: points, minimumConfidence: minimumConfidence)
         let hasLeftAnkle = hasPoint(.leftAnkle, points: points, minimumConfidence: minimumConfidence)
         let hasRightAnkle = hasPoint(.rightAnkle, points: points, minimumConfidence: minimumConfidence)
         let hasLeftWrist = hasPoint(.leftWrist, points: points, minimumConfidence: minimumConfidence)
         let hasRightWrist = hasPoint(.rightWrist, points: points, minimumConfidence: minimumConfidence)
 
-        return hasNose && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
+        // Backend boundary check: neck + wrists + both ankles.
+        return hasNeck && hasLeftAnkle && hasRightAnkle && hasLeftWrist && hasRightWrist
     }
 
     private func hasPoint(
