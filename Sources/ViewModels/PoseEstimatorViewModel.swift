@@ -362,7 +362,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         }
 
         // Tunables for live testing.
-        let shinVerticalTolerance: CGFloat = 0.05
+        let shinVerticalTolerance: CGFloat = 0.15 
         let minimumStanceWidth: CGFloat = 0.18
 
         let confidence: Float = 0.3
@@ -398,19 +398,17 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let leftKneeAngle = angleDegrees(a: leftHip.location, b: leftKnee.location, c: leftAnkle.location)
         let rightKneeAngle = angleDegrees(a: rightHip.location, b: rightKnee.location, c: rightAnkle.location)
 
-        let kneesDeeplyBent = (120...170).contains(leftKneeAngle) && (120...172).contains(rightKneeAngle)
+        // --- UPDATED KNEE LOGIC ---
+        // Widened heavily to account for 2D camera perspective flattening.
+        let kneesDeeplyBent = (90...178).contains(leftKneeAngle) && (90...178).contains(rightKneeAngle)
 
         let ankleDistance = distance(leftAnkle.location, rightAnkle.location)
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)
         let stanceWide = ankleDistance > shoulderDistance
 
-        // Plumb-line test: front shin should be near vertical (knee stacked over ankle).
+        // --- UPDATED SHIN LOGIC ---
         let frontShinHorizontalOffset = abs(frontAnklePoint.location.x - frontKneePoint.location.x)
         let isFrontShinVertical = frontShinHorizontalOffset <= shinVerticalTolerance
-
-        // Kept as debug-only metric.
-        let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
-        let isBackLegPointingCamera = abs(backLegDirectionX) <= 0.05
 
         maybePublishLowerBodyDebugMetrics(
             leftKneeAngle: leftKneeAngle,
