@@ -229,7 +229,7 @@ struct CameraTrainingView: View {
             )
 
             metricRow(
-                label: "frontLegDirectionX",
+                label: "frontShinHorizontalOffset",
                 value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyFrontLegDirectionX),
                 passed: poseEstimatorViewModel.lowerBodyIsFrontLegForward
             )

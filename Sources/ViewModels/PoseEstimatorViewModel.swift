@@ -361,6 +361,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             return false
         }
 
+        // Tunables for live testing.
+        let shinVerticalTolerance: CGFloat = 0.05
+        let minimumStanceWidth: CGFloat = 0.18
+
         let confidence: Float = 0.3
         guard
             let leftHip = points[.leftHip],
@@ -394,19 +398,19 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let leftKneeAngle = angleDegrees(a: leftHip.location, b: leftKnee.location, c: leftAnkle.location)
         let rightKneeAngle = angleDegrees(a: rightHip.location, b: rightKnee.location, c: rightAnkle.location)
 
-        let kneesDeeplyBent = (120...170).contains(leftKneeAngle) && (120...160).contains(rightKneeAngle)
+        let kneesDeeplyBent = (120...150).contains(leftKneeAngle) && (120...160).contains(rightKneeAngle)
 
         let ankleDistance = distance(leftAnkle.location, rightAnkle.location)
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)
-        let stanceWide = ankleDistance > shoulderDistance
+        let stanceWide = ankleDistance > minimumStanceWidth
 
-        // Same forward-direction logic pattern used for upper body.
-        let frontLegDirectionX = (frontAnklePoint.location.x - frontKneePoint.location.x)
-        let isFrontLegForward = isRightHandedStance ? (frontLegDirectionX > 0.02) : (frontLegDirectionX < -0.02)
+        // Plumb-line test: front shin should be near vertical (knee stacked over ankle).
+        let frontShinHorizontalOffset = abs(frontAnklePoint.location.x - frontKneePoint.location.x)
+        let isFrontShinVertical = frontShinHorizontalOffset <= shinVerticalTolerance
 
-        // Back leg should point to camera: keep knee/ankle x nearly aligned.
+        // Kept as debug-only metric.
         let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
-        let isBackLegPointingCamera = (backLegDirectionX < 0.05 && backLegDirectionX > -0.05)
+        let isBackLegPointingCamera = abs(backLegDirectionX) <= 0.05
 
         maybePublishLowerBodyDebugMetrics(
             leftKneeAngle: leftKneeAngle,
@@ -415,13 +419,14 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             ankleDistance: ankleDistance,
             shoulderDistance: shoulderDistance,
             stanceWide: stanceWide,
-            frontLegDirectionX: frontLegDirectionX,
-            isFrontLegForward: isFrontLegForward,
+            frontLegDirectionX: frontShinHorizontalOffset,
+            isFrontLegForward: isFrontShinVertical,
             backLegDirectionX: backLegDirectionX,
             isBackLegPointingCamera: isBackLegPointingCamera
         )
 
-        return kneesDeeplyBent && stanceWide && isFrontLegForward && isBackLegPointingCamera
+        let isLowerBodyCorrect = isFrontShinVertical && kneesDeeplyBent && stanceWide
+        return isLowerBodyCorrect
     }
 
     private func validateFullPose(_ observation: VNHumanBodyPoseObservation) -> Bool {
