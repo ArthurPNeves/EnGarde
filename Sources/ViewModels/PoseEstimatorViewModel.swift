@@ -28,6 +28,8 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published var isEnGardePoseCorrect: Bool = false
     @Published private(set) var isUpperBodyValid: Bool = false
     @Published private(set) var isLowerBodyValid: Bool = false
+    @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
+    @Published private(set) var isRightHandedStance: Bool = true
     @Published private(set) var holdProgress: Double = 0
     @Published private(set) var didHoldTargetForRequiredDuration: Bool = false
     @Published private(set) var errorMessage: String?
@@ -46,31 +48,31 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     private weak var audioPlayerViewModel: AudioPlayerViewModel?
 
     private var currentStep: EnGardeStep {
-        appState?.currentEnGardeStep ?? .upperBody
+        activeEnGardeStep
     }
 
     private var frontWrist: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .rightWrist : .leftWrist
+        isRightHandedStance ? .rightWrist : .leftWrist
     }
 
     private var backWrist: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .leftWrist : .rightWrist
+        isRightHandedStance ? .leftWrist : .rightWrist
     }
 
     private var frontElbow: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .rightElbow : .leftElbow
+        isRightHandedStance ? .rightElbow : .leftElbow
     }
 
     private var backElbow: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .leftElbow : .rightElbow
+        isRightHandedStance ? .leftElbow : .rightElbow
     }
 
     private var frontShoulder: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .rightShoulder : .leftShoulder
+        isRightHandedStance ? .rightShoulder : .leftShoulder
     }
 
     private var backShoulder: VNHumanBodyPoseObservation.JointName {
-        (appState?.isRightHanded ?? true) ? .leftShoulder : .rightShoulder
+        isRightHandedStance ? .leftShoulder : .rightShoulder
     }
 
     var statusText: String {
@@ -105,9 +107,11 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         }
     }
 
+    @MainActor
     func configureDependencies(appState: AppState, audioPlayerViewModel: AudioPlayerViewModel) {
         self.appState = appState
         self.audioPlayerViewModel = audioPlayerViewModel
+        syncWizardConfigurationFromAppState()
     }
 
     @MainActor
@@ -152,11 +156,11 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             }
         case .denied, .restricted:
             Task { @MainActor in
-                self?.setPermissionDeniedState()
+                self.setPermissionDeniedState()
             }
         @unknown default:
             Task { @MainActor in
-                self?.setPermissionDeniedState()
+                self.setPermissionDeniedState()
             }
         }
     }
@@ -245,8 +249,9 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                     let lower = self.validateLowerBody(observation)
                     let full = self.validateFullPose(observation)
 
+                    let step = self.currentStep
                     let shouldPass: Bool
-                    switch self.currentStep {
+                    switch step {
                     case .upperBody:
                         shouldPass = upper
                     case .lowerBody:
@@ -295,7 +300,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         }
 
         let frontDirectionX = frontWristPoint.location.x - frontShoulderPoint.location.x
-        let isFrontArmForward = (appState?.isRightHanded ?? true) ? (frontDirectionX > 0.06) : (frontDirectionX < -0.06)
+        let isFrontArmForward = isRightHandedStance ? (frontDirectionX > 0.06) : (frontDirectionX < -0.06)
 
         let frontArmAngle = angleDegrees(a: frontShoulderPoint.location, b: frontElbowPoint.location, c: frontWristPoint.location)
         let isFrontArmSlightlyBent = (frontArmAngle > 145 && frontArmAngle < 178)
@@ -393,6 +398,8 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         lowerValid: Bool,
         bodyVisible: Bool
     ) {
+        syncWizardConfigurationFromAppState()
+
         guard setupState != .success else { return }
 
         isBodyFullyVisible = bodyVisible
@@ -477,6 +484,8 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
     @MainActor
     private func resetTrackingState() {
+        syncWizardConfigurationFromAppState()
+
         isBodyFullyVisible = false
         isEnGardePoseCorrect = false
         isUpperBodyValid = false
@@ -489,6 +498,13 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         errorMessage = nil
         appState?.isCameraSetupValidated = false
         invalidateHoldTimer()
+    }
+
+    @MainActor
+    private func syncWizardConfigurationFromAppState() {
+        guard let appState else { return }
+        activeEnGardeStep = appState.currentEnGardeStep
+        isRightHandedStance = appState.isRightHanded
     }
 
     private func angleDegrees(a: CGPoint, b: CGPoint, c: CGPoint) -> Double {
