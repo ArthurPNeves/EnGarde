@@ -41,6 +41,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published private(set) var lowerBodyAnkleDistance: Double = 0
     @Published private(set) var lowerBodyShoulderDistance: Double = 0
     @Published private(set) var lowerBodyIsStanceWide: Bool = false
+    @Published private(set) var lowerBodyFrontLegDirectionX: Double = 0
+    @Published private(set) var lowerBodyIsFrontLegForward: Bool = false
+    @Published private(set) var lowerBodyBackLegDirectionX: Double = 0
+    @Published private(set) var lowerBodyIsBackLegPointingCamera: Bool = false
     @Published private(set) var lowerBodyMetricsUpdatedAt: Date?
     @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
     @Published private(set) var isRightHandedStance: Bool = true
@@ -89,6 +93,22 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
     private var backShoulder: VNHumanBodyPoseObservation.JointName {
         isRightHandedStance ? .leftShoulder : .rightShoulder
+    }
+
+    private var frontKnee: VNHumanBodyPoseObservation.JointName {
+        isRightHandedStance ? .rightKnee : .leftKnee
+    }
+
+    private var backKnee: VNHumanBodyPoseObservation.JointName {
+        isRightHandedStance ? .leftKnee : .rightKnee
+    }
+
+    private var frontAnkle: VNHumanBodyPoseObservation.JointName {
+        isRightHandedStance ? .rightAnkle : .leftAnkle
+    }
+
+    private var backAnkle: VNHumanBodyPoseObservation.JointName {
+        isRightHandedStance ? .leftAnkle : .rightAnkle
     }
 
     var statusText: String {
@@ -349,6 +369,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             let rightKnee = points[.rightKnee],
             let leftAnkle = points[.leftAnkle],
             let rightAnkle = points[.rightAnkle],
+            let frontKneePoint = points[frontKnee],
+            let backKneePoint = points[backKnee],
+            let frontAnklePoint = points[frontAnkle],
+            let backAnklePoint = points[backAnkle],
             let leftShoulder = points[.leftShoulder],
             let rightShoulder = points[.rightShoulder],
             leftHip.confidence > confidence,
@@ -357,6 +381,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             rightKnee.confidence > confidence,
             leftAnkle.confidence > confidence,
             rightAnkle.confidence > confidence,
+            frontKneePoint.confidence > confidence,
+            backKneePoint.confidence > confidence,
+            frontAnklePoint.confidence > confidence,
+            backAnklePoint.confidence > confidence,
             leftShoulder.confidence > confidence,
             rightShoulder.confidence > confidence
         else {
@@ -366,11 +394,19 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         let leftKneeAngle = angleDegrees(a: leftHip.location, b: leftKnee.location, c: leftAnkle.location)
         let rightKneeAngle = angleDegrees(a: rightHip.location, b: rightKnee.location, c: rightAnkle.location)
 
-        let kneesDeeplyBent = (120...140).contains(leftKneeAngle) && (120...140).contains(rightKneeAngle)
+        let kneesDeeplyBent = (120...160).contains(leftKneeAngle) && (120...150).contains(rightKneeAngle)
 
         let ankleDistance = distance(leftAnkle.location, rightAnkle.location)
         let shoulderDistance = distance(leftShoulder.location, rightShoulder.location)
         let stanceWide = ankleDistance > shoulderDistance
+
+        // Same forward-direction logic pattern used for upper body.
+        let frontLegDirectionX = -(frontAnklePoint.location.x - frontKneePoint.location.x)
+        let isFrontLegForward = isRightHandedStance ? (frontLegDirectionX > 0.06) : (frontLegDirectionX < -0.06)
+
+        // Back leg should point to camera: keep knee/ankle x nearly aligned.
+        let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
+        let isBackLegPointingCamera = abs(backLegDirectionX) < 0.05
 
         maybePublishLowerBodyDebugMetrics(
             leftKneeAngle: leftKneeAngle,
@@ -378,10 +414,14 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             kneesDeeplyBent: kneesDeeplyBent,
             ankleDistance: ankleDistance,
             shoulderDistance: shoulderDistance,
-            stanceWide: stanceWide
+            stanceWide: stanceWide,
+            frontLegDirectionX: frontLegDirectionX,
+            isFrontLegForward: isFrontLegForward,
+            backLegDirectionX: backLegDirectionX,
+            isBackLegPointingCamera: isBackLegPointingCamera
         )
 
-        return kneesDeeplyBent && stanceWide
+        return kneesDeeplyBent && stanceWide && isFrontLegForward && isBackLegPointingCamera
     }
 
     private func validateFullPose(_ observation: VNHumanBodyPoseObservation) -> Bool {
@@ -538,6 +578,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         lowerBodyAnkleDistance = 0
         lowerBodyShoulderDistance = 0
         lowerBodyIsStanceWide = false
+        lowerBodyFrontLegDirectionX = 0
+        lowerBodyIsFrontLegForward = false
+        lowerBodyBackLegDirectionX = 0
+        lowerBodyIsBackLegPointingCamera = false
         lowerBodyMetricsUpdatedAt = nil
         setupState = .searching
         holdProgress = 0
@@ -588,7 +632,11 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         kneesDeeplyBent: Bool,
         ankleDistance: CGFloat,
         shoulderDistance: CGFloat,
-        stanceWide: Bool
+        stanceWide: Bool,
+        frontLegDirectionX: CGFloat,
+        isFrontLegForward: Bool,
+        backLegDirectionX: CGFloat,
+        isBackLegPointingCamera: Bool
     ) {
         let now = Date()
         guard now >= nextLowerBodyDebugPublishDate else { return }
@@ -602,6 +650,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             self.lowerBodyAnkleDistance = ankleDistance
             self.lowerBodyShoulderDistance = shoulderDistance
             self.lowerBodyIsStanceWide = stanceWide
+            self.lowerBodyFrontLegDirectionX = frontLegDirectionX
+            self.lowerBodyIsFrontLegForward = isFrontLegForward
+            self.lowerBodyBackLegDirectionX = backLegDirectionX
+            self.lowerBodyIsBackLegPointingCamera = isBackLegPointingCamera
             self.lowerBodyMetricsUpdatedAt = now
         }
     }

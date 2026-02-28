@@ -228,6 +228,18 @@ struct CameraTrainingView: View {
                 passed: poseEstimatorViewModel.lowerBodyIsStanceWide
             )
 
+            metricRow(
+                label: "frontLegDirectionX",
+                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyFrontLegDirectionX),
+                passed: poseEstimatorViewModel.lowerBodyIsFrontLegForward
+            )
+
+            metricRow(
+                label: "backLegDirectionX",
+                value: String(format: "%.3f", poseEstimatorViewModel.lowerBodyBackLegDirectionX),
+                passed: poseEstimatorViewModel.lowerBodyIsBackLegPointingCamera
+            )
+
             if let updatedAt = poseEstimatorViewModel.lowerBodyMetricsUpdatedAt {
                 Text("Last update: \(updatedAt.formatted(date: .omitted, time: .standard))")
                     .font(.caption)
