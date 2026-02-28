@@ -46,8 +46,6 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     @Published private(set) var lowerBodyBackLegDirectionX: Double = 0
     @Published private(set) var lowerBodyIsBackLegPointingCamera: Bool = false
     @Published private(set) var lowerBodyMetricsUpdatedAt: Date?
-    @Published private(set) var is3DObservationAvailable: Bool = false
-    @Published private(set) var isUsing3DForLowerBody: Bool = false
     @Published private(set) var activeEnGardeStep: EnGardeStep = .upperBody
     @Published private(set) var isRightHandedStance: Bool = true
     @Published private(set) var holdProgress: Double = 0
@@ -261,27 +259,21 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
     private func processSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
         visionQueue.async { [weak self] in
             guard let self else { return }
-            let request2D = VNDetectHumanBodyPoseRequest()
-            let request3D = VNDetectHumanBodyPose3DRequest()
+            let request = VNDetectHumanBodyPoseRequest()
             let handler = VNImageRequestHandler(cmSampleBuffer: sampleBuffer, orientation: .up, options: [:])
 
             do {
-                try handler.perform([request2D, request3D])
+                try handler.perform([request])
 
                 guard
-                    let observation2D = (request2D.results as? [VNHumanBodyPoseObservation])?.first
+                    let observation = (request.results as? [VNHumanBodyPoseObservation])?.first
                 else {
-                    self.publish3DAvailability(false, using3DLowerBody: false)
                     self.applyFrameEvaluation(isValid: false, upperValid: false, lowerValid: false, fullVisible: false)
                     return
                 }
 
-                let observation3D = (request3D.results as? [VNHumanBodyPose3DObservation])?.first
-                let has3DObservation = observation3D != nil
-
                 if self.mode == .setup {
-                    self.publish3DAvailability(has3DObservation, using3DLowerBody: false)
-                    let wholeBodyVisible = self.hasRequiredBoundaryJoints(in: observation2D)
+                    let wholeBodyVisible = self.hasRequiredBoundaryJoints(in: observation)
                     self.applyFrameEvaluation(
                         isValid: wholeBodyVisible,
                         upperValid: false,
@@ -289,11 +281,9 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                         fullVisible: wholeBodyVisible
                     )
                 } else {
-                    let upper = self.validateUpperBody(observation2D)
-                    let lower = self.validateLowerBody(observation2D, pose3D: observation3D)
-                    let full = self.validateFullPose(observation2D, pose3D: observation3D)
-
-                    self.publish3DAvailability(has3DObservation, using3DLowerBody: has3DObservation)
+                    let upper = self.validateUpperBody(observation)
+                    let lower = self.validateLowerBody(observation)
+                    let full = self.validateFullPose(observation)
 
                     let step = self.currentStep
                     let shouldPass: Bool
@@ -312,11 +302,10 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
                         isValid: shouldPass,
                         upperValid: upper,
                         lowerValid: lower,
-                        fullVisible: self.hasRequiredBoundaryJoints(in: observation2D)
+                        fullVisible: self.hasRequiredBoundaryJoints(in: observation)
                     )
                 }
             } catch {
-                self.publish3DAvailability(false, using3DLowerBody: false)
                 self.applyFrameEvaluation(isValid: false, upperValid: false, lowerValid: false, fullVisible: false)
             }
         }
@@ -367,10 +356,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         return isFrontArmForward && isFrontArmSlightlyBent && isBackArmElevated
     }
 
-    private func validateLowerBody(
-        _ observation: VNHumanBodyPoseObservation,
-        pose3D: VNHumanBodyPose3DObservation?
-    ) -> Bool {
+    private func validateLowerBody(_ observation: VNHumanBodyPoseObservation) -> Bool {
         guard let points = try? observation.recognizedPoints(.all) else {
             return false
         }
@@ -420,8 +406,7 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
 
         // Back leg should point to camera: keep knee/ankle x nearly aligned.
         let backLegDirectionX = backAnklePoint.location.x - backKneePoint.location.x
-        let backLegDirectionThreshold: CGFloat = pose3D == nil ? 0.05 : 0.035
-        let isBackLegPointingCamera = abs(backLegDirectionX) < backLegDirectionThreshold
+        let isBackLegPointingCamera = (backLegDirectionX < 0.05 && backLegDirectionX > -0.05)
 
         maybePublishLowerBodyDebugMetrics(
             leftKneeAngle: leftKneeAngle,
@@ -439,11 +424,8 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         return kneesDeeplyBent && stanceWide && isFrontLegForward && isBackLegPointingCamera
     }
 
-    private func validateFullPose(
-        _ observation: VNHumanBodyPoseObservation,
-        pose3D: VNHumanBodyPose3DObservation?
-    ) -> Bool {
-        validateUpperBody(observation) && validateLowerBody(observation, pose3D: pose3D)
+    private func validateFullPose(_ observation: VNHumanBodyPoseObservation) -> Bool {
+        validateUpperBody(observation) && validateLowerBody(observation)
     }
 
     private func hasRequiredBoundaryJoints(in observation: VNHumanBodyPoseObservation) -> Bool {
@@ -632,8 +614,6 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
         lowerBodyBackLegDirectionX = 0
         lowerBodyIsBackLegPointingCamera = false
         lowerBodyMetricsUpdatedAt = nil
-        is3DObservationAvailable = false
-        isUsing3DForLowerBody = false
         setupState = .searching
         holdProgress = 0
         didHoldTargetForRequiredDuration = false
@@ -706,14 +686,6 @@ final class PoseEstimatorViewModel: NSObject, ObservableObject {
             self.lowerBodyBackLegDirectionX = backLegDirectionX
             self.lowerBodyIsBackLegPointingCamera = isBackLegPointingCamera
             self.lowerBodyMetricsUpdatedAt = now
-        }
-    }
-
-    private func publish3DAvailability(_ available: Bool, using3DLowerBody: Bool) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.is3DObservationAvailable = available
-            self.isUsing3DForLowerBody = using3DLowerBody
         }
     }
 
