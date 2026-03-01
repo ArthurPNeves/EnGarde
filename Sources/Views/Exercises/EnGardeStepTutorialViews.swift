@@ -12,7 +12,9 @@ struct UpperBodyTutorialView: View {
                 "Front elbow stays slightly bent",
                 "Back arm lifted and stable"
             ],
-            imageName: "template",
+            imageName: "upper_correct",
+            incorrectImageNames: ["upper_backNotLifited", "upper_fowardNotBend", "upper_fowardNotStraight"],
+            correctImageName: "upper_correct",
             buttonTitle: "Next"
         ) {
             appState.openEnGardeUpperBodyCamera()
@@ -32,7 +34,9 @@ struct LowerBodyTutorialView: View {
                 "Ankles wider than shoulders",
                 "Weight centered and controlled"
             ],
-            imageName: "template_vertical",
+            imageName: "lower_correct",
+            incorrectImageNames: ["lower_notBend", "lower_notOpen"],
+            correctImageName: "lower_correct",
             buttonTitle: "Next"
         ) {
             appState.openEnGardeLowerBodyCamera()
@@ -52,7 +56,9 @@ struct FullPoseTutorialView: View {
                 "Back arm elevated",
                 "Deep knees and wide stance"
             ],
-            imageName: "swords",
+            imageName: "full_correct",
+            incorrectImageNames: ["full_upper", "full_botton"],
+            correctImageName: "full_correct",
             buttonTitle: "Start Full Check"
         ) {
             appState.openEnGardeFullPoseCamera()
@@ -65,6 +71,8 @@ private struct EnGardeStepTutorialScaffold: View {
     let description: String
     let bullets: [String]
     let imageName: String
+    let incorrectImageNames: [String]
+    let correctImageName: String
     let buttonTitle: String
     let action: () -> Void
 
@@ -92,6 +100,10 @@ private struct EnGardeStepTutorialScaffold: View {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .strokeBorder(.white.opacity(0.16), lineWidth: 1)
                                 )
+
+                            Text(readableSubtitle(from: imageName))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
 
                             HStack(spacing: 8) {
                                 ForEach(bullets, id: \.self) { bullet in
@@ -188,9 +200,9 @@ private struct EnGardeStepTutorialScaffold: View {
                 .foregroundStyle(.red)
 
             HStack(spacing: 8) {
-                ForEach(Array(bullets.prefix(3)), id: \.self) { bullet in
+                ForEach(incorrectImageNames, id: \.self) { imageName in
                     VStack(spacing: 5) {
-                        ResourceImageView(name: "template_vertical")
+                        ResourceImageView(name: imageName)
                             .scaledToFill()
                             .frame(width: 92, height: 130)
                             .clipped()
@@ -206,7 +218,7 @@ private struct EnGardeStepTutorialScaffold: View {
                             )
                             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                        Text(bullet)
+                        Text(readableSubtitle(from: imageName))
                             .font(.caption2)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(.red.opacity(0.9))
@@ -224,7 +236,7 @@ private struct EnGardeStepTutorialScaffold: View {
                 .foregroundStyle(.green)
 
             ZStack {
-                ResourceImageView(name: "template_vertical")
+                ResourceImageView(name: correctImageName)
                     .scaledToFill()
                     .frame(height: 150)
                     .frame(maxWidth: .infinity)
@@ -248,7 +260,35 @@ private struct EnGardeStepTutorialScaffold: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            Text(readableSubtitle(from: correctImageName))
+                .font(.caption2)
+                .foregroundStyle(.green.opacity(0.9))
         }
         .frame(width: 220, alignment: .leading)
+    }
+
+    private func readableSubtitle(from imageName: String) -> String {
+        var expanded = ""
+        for character in imageName {
+            if character == "_" {
+                expanded.append(" ")
+                continue
+            }
+
+            if character.isUppercase, !expanded.isEmpty, expanded.last != " " {
+                expanded.append(" ")
+            }
+
+            expanded.append(character)
+        }
+
+        return expanded
+            .replacingOccurrences(of: "foward", with: "forward")
+            .replacingOccurrences(of: "Lifited", with: "lifted")
+            .replacingOccurrences(of: "botton", with: "bottom")
+            .split(separator: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
     }
 }

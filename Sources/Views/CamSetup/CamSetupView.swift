@@ -118,17 +118,17 @@ struct CamSetupView: View {
                 .foregroundStyle(.red)
 
             HStack(spacing: 8) {
-                incorrectCard(title: "Body Partially\nVisible")
-                incorrectCard(title: "Device\nToo Low")
-                incorrectCard(title: "Misaligned\nAngle")
+                ForEach(["camSetup_feetNotShowing", "camSetup_neckNotShowing"], id: \.self) { imageName in
+                    incorrectCard(imageName: imageName)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private func incorrectCard(title: String) -> some View {
+    private func incorrectCard(imageName: String) -> some View {
         VStack(spacing: 5) {
-            ResourceImageView(name: "template_vertical")
+            ResourceImageView(name: imageName)
                 .scaledToFill()
                 .frame(width: 92, height: 130)
                 .clipped()
@@ -144,7 +144,7 @@ struct CamSetupView: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-            Text(title)
+            Text(readableSubtitle(from: imageName))
                 .font(.caption2)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.red.opacity(0.9))
@@ -158,7 +158,7 @@ struct CamSetupView: View {
                 .foregroundStyle(.green)
 
             ZStack {
-                ResourceImageView(name: "template_vertical")
+                ResourceImageView(name: "camSetup_correct")
                     .scaledToFill()
                     .frame(height: 150)
                     .frame(maxWidth: .infinity)
@@ -182,7 +182,34 @@ struct CamSetupView: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            Text(readableSubtitle(from: "camSetup_correct"))
+                .font(.caption2)
+                .foregroundStyle(.green.opacity(0.9))
         }
         .frame(width: 200, alignment: .leading)
+    }
+
+    private func readableSubtitle(from imageName: String) -> String {
+        var expanded = ""
+        for character in imageName {
+            if character == "_" {
+                expanded.append(" ")
+                continue
+            }
+
+            if character.isUppercase, !expanded.isEmpty, expanded.last != " " {
+                expanded.append(" ")
+            }
+
+            expanded.append(character)
+        }
+
+        return expanded
+            .replacingOccurrences(of: "cam Setup", with: "Camera Setup")
+            .replacingOccurrences(of: "not ", with: "not ")
+            .split(separator: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
     }
 }
