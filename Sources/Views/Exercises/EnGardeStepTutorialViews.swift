@@ -31,7 +31,7 @@ struct LowerBodyTutorialView: View {
             mistakes: [
                 .init(imageName: "lower_notBend", title: "Lower Not Bend"),
                 .init(imageName: "lower_notOpen", title: "Lower Not Open"),
-                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
+                .init(imageName: resolvedCrabImageName(), title: "Fencers walk like a crab so keep feet foward")
             ],
             buttonTitle: "Next"
         ) {
@@ -51,7 +51,7 @@ struct FullPoseTutorialView: View {
             mistakes: [
                 .init(imageName: "full_upper", title: "Full Upper Incorrect"),
                 .init(imageName: "full_botton", title: "Full Bottom Incorrect"),
-                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
+                .init(imageName: resolvedCrabImageName(), title: "Fencers walk like a crab so keep feet foward")
             ],
             buttonTitle: "Start Full Check"
         ) {
