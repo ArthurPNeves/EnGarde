@@ -21,18 +21,18 @@ struct WelcomeView: View {
 
                 HStack(alignment: .top, spacing: 34) {
                     FeatureColumn(
-                        symbolName: "camera.viewfinder",
                         title: "Camera Vision",
+                        symbolName: "camera.viewfinder",
                         description: "Tracks your joints in real-time."
                     )
                     FeatureColumn(
-                        symbolName: "waveform.path.ecg",
                         title: "Posture Analysis",
+                        symbolName: "waveform.path.ecg",
                         description: "Provides instant feedback on your stance."
                     )
                     FeatureColumn(
-                        symbolName: "figure.fencing",
                         title: "Fencing Drills",
+                        symbolName: "figure.fencing",
                         description: "Master the En Garde step-by-step."
                     )
                 }
