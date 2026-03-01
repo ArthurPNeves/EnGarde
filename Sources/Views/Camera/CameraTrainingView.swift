@@ -9,6 +9,7 @@ struct CameraTrainingView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var audioPlayerViewModel: AudioPlayerViewModel
     @StateObject private var poseEstimatorViewModel = PoseEstimatorViewModel()
+    @State private var isReferencePoseVisible: Bool = true
 
     private let skeletonPassColor: Color = .green
     private let skeletonFailColor: Color = .red
@@ -32,11 +33,19 @@ struct CameraTrainingView: View {
             )
             .allowsHitTesting(false)
 
+            if showNextButton {
+                centerNextButton
+            }
+
             VStack(spacing: 0) {
                 HStack(alignment: .top) {
                     if mode == .enGarde {
                         enGardeChecklistOverlay
                     }
+
+                    Spacer(minLength: 0)
+
+                    referencePoseOverlay
                 }
                 .padding(16)
 
@@ -72,26 +81,6 @@ struct CameraTrainingView: View {
                     .buttonStyle(.plain)
 
                     Spacer()
-
-                    if showNextButton {
-                        Button(action: onComplete) {
-                            HStack(spacing: 8) {
-                                Text(nextButtonTitle)
-                                    .font(.subheadline.weight(.semibold))
-                                Image(systemName: "arrow.right")
-                                    .font(.subheadline.weight(.bold))
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .foregroundStyle(.white)
-                            .background(.ultraThinMaterial, in: Capsule(style: .continuous))
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .strokeBorder(.white.opacity(0.25), lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 10)
@@ -112,6 +101,69 @@ struct CameraTrainingView: View {
         }
         .onDisappear {
             poseEstimatorViewModel.stop()
+        }
+    }
+
+    private var centerNextButton: some View {
+        Button(action: onComplete) {
+            HStack(spacing: 12) {
+                Text(nextButtonTitle)
+                    .font(.title2.weight(.heavy))
+                Image(systemName: "arrow.right.circle.fill")
+                    .font(.title2.weight(.heavy))
+            }
+            .padding(.horizontal, 34)
+            .padding(.vertical, 18)
+            .foregroundStyle(.white)
+            .background(
+                LinearGradient(
+                    colors: [Color.green, Color.green.opacity(0.78)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                in: Capsule(style: .continuous)
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .strokeBorder(.white.opacity(0.3), lineWidth: 1)
+            )
+            .shadow(color: .green.opacity(0.45), radius: 14, y: 8)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var referencePoseOverlay: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isReferencePoseVisible.toggle()
+                }
+            } label: {
+                Label(isReferencePoseVisible ? "Hide pose" : "Show pose", systemImage: isReferencePoseVisible ? "eye.slash.fill" : "eye.fill")
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .foregroundStyle(.white)
+                    .background(Color.black.opacity(0.35), in: Capsule(style: .continuous))
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+
+            if isReferencePoseVisible {
+                ResourceImageView(name: "engardeposevertical")
+                    .scaledToFit()
+                    .frame(width: 170)
+                    .padding(8)
+                    .background(Color.black.opacity(0.3), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(.white.opacity(0.22), lineWidth: 1)
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+            }
         }
     }
 

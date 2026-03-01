@@ -81,7 +81,25 @@ struct GuideView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .scrollIndicators(.hidden)
+            .overlay(alignment: .bottom) {
+                guideScrollCue
+            }
         }
+    }
+
+    private var guideScrollCue: some View {
+        VStack(spacing: 4) {
+            Image(systemName: "chevron.down")
+                .font(.caption.weight(.bold))
+            Text("Scroll")
+                .font(.caption2.weight(.semibold))
+        }
+        .foregroundStyle(.white.opacity(0.85))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.22), in: Capsule(style: .continuous))
+        .padding(.bottom, 8)
+        .allowsHitTesting(false)
     }
 
     private func guideImageCard(resourceName: String, label: String) -> some View {
