@@ -21,7 +21,7 @@ struct RootSplitView: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 14) {
-                ResourceImageView(name: "logo")
+                ResourceImageView(name: "Logo")
                     .scaledToFit()
                     .frame(width: 120, height: 48, alignment: .leading)
             }
@@ -56,7 +56,6 @@ struct RootSplitView: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .frame(width: 34, height: 34)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Dark Mode")
@@ -71,7 +70,6 @@ struct RootSplitView: View {
                 ThemeToggleButton(isDarkMode: $prefersDarkAppearance)
             }
             .padding(14)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .padding(16)
         }
         .background(sidebarBackground)

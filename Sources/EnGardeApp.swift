@@ -9,6 +9,7 @@ struct EnGardeApp: App {
     var body: some Scene {
         WindowGroup {
             RootSplitView()
+                .frame(minWidth: 900, minHeight: 620)
                 .environmentObject(appState)
                 .environmentObject(audioPlayerViewModel)
                 .tint(prefersDarkAppearance ? .white : Color(red: 0.07, green: 0.20, blue: 0.44))
@@ -17,5 +18,9 @@ struct EnGardeApp: App {
                     appState.requestCameraPermission()
                 }
         }
+#if os(macOS)
+        .defaultSize(width: 1200, height: 760)
+        .windowResizability(.automatic)
+#endif
     }
 }

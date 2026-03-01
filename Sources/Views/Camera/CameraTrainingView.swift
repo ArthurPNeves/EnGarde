@@ -10,9 +10,9 @@ struct CameraTrainingView: View {
     @EnvironmentObject private var audioPlayerViewModel: AudioPlayerViewModel
     @StateObject private var poseEstimatorViewModel = PoseEstimatorViewModel()
 
-    private let skeletonPassColor: Color = .cyan
-    private let skeletonFailColor: Color = .orange
-    private let skeletonNeutralColor: Color = .white.opacity(0.75)
+    private let skeletonPassColor: Color = .green
+    private let skeletonFailColor: Color = .red
+    private let skeletonNeutralColor: Color = .gray.opacity(0.7)
 
     var body: some View {
         ZStack {

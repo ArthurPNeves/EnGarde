@@ -23,8 +23,8 @@ struct CongratsView: View {
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)
 
-            PrimaryActionButton(title: "Back to En garde", symbolName: "list.bullet") {
-                appState.returnToEnGarde()
+            PrimaryActionButton(title: "Back to Welcome", symbolName: "house") {
+                appState.navigate(to: .welcome)
             }
             .frame(maxWidth: 860)
             .frame(maxWidth: .infinity, alignment: .center)
