@@ -50,9 +50,30 @@ struct CameraTrainingView: View {
 
                 Spacer()
 
-                if showNextButton {
-                    HStack {
-                        Spacer()
+                HStack(alignment: .center) {
+                    Button {
+                        appState.goBackToTutorial(from: mode)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.left")
+                                .font(.subheadline.weight(.bold))
+                            Text("Go back to tutorial")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .foregroundStyle(.white)
+                        .background(Color.black.opacity(0.35), in: Capsule(style: .continuous))
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    if showNextButton {
                         Button(action: onComplete) {
                             HStack(spacing: 8) {
                                 Text(nextButtonTitle)
@@ -71,9 +92,9 @@ struct CameraTrainingView: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 10)
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
 
                 holdProgressLine
                     .padding(.horizontal, 16)
@@ -95,28 +116,31 @@ struct CameraTrainingView: View {
     }
 
     private var holdProgressLine: some View {
-        VStack(spacing: 0) {
-            ProgressView(value: poseEstimatorViewModel.holdProgress)
-                .tint(poseEstimatorViewModel.setupState == .success ? .green : .yellow)
-                .shadow(
-                    color: poseEstimatorViewModel.setupState == .inFrame ? .yellow.opacity(0.95) : .clear,
-                    radius: 8,
-                    x: 0,
-                    y: 0
-                )
+        GeometryReader { proxy in
+            let progress = max(0, min(poseEstimatorViewModel.holdProgress, 1))
+            let fillColor: Color = progress >= 1 ? .green : .red
+
+            ZStack(alignment: .leading) {
+                Capsule(style: .continuous)
+                    .fill(.white.opacity(0.18))
+
+                Capsule(style: .continuous)
+                    .fill(fillColor)
+                    .frame(width: proxy.size.width * progress)
+                    .shadow(color: fillColor.opacity(0.55), radius: 6)
+            }
         }
-        .progressViewStyle(.linear)
+        .frame(height: 10)
     }
 
     @ViewBuilder
     private var enGardeChecklistOverlay: some View {
         if appState.currentEnGardeStep == .fullPose || appState.currentEnGardeStep == .completed {
-            HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 checklistPanel(title: "Upper Body", items: upperChecklistItems)
-                Spacer(minLength: 14)
                 checklistPanel(title: "Lower Body", items: lowerChecklistItems)
             }
-            .frame(maxWidth: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         } else {
             checklistPanel(title: nil, items: activeChecklistItems)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -124,33 +148,33 @@ struct CameraTrainingView: View {
     }
 
     private func checklistPanel(title: String?, items: [(title: String, isValid: Bool)]) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 10) {
             if let title {
                 Text(title)
-                    .font(.largeTitle.weight(.black))
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(.white)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 2)
             }
 
             ForEach(items, id: \.title) { item in
                 checklistRow(title: item.title, isValid: item.isValid)
             }
         }
-        .padding(30)
-        .frame(maxWidth: 520, alignment: .leading)
+        .padding(14)
+        .frame(maxWidth: 300, alignment: .leading)
     }
 
     @ViewBuilder
     private func checklistRow(title: String, isValid: Bool) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 10) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
-                .font(.largeTitle.weight(.black))
+                .font(.title3.weight(.bold))
                 .foregroundStyle(isValid ? .green : .red)
             Text(title)
-                .font(.title.weight(.black))
+                .font(.headline.weight(.bold))
                 .foregroundStyle(.white)
-                .lineLimit(3)
-                .minimumScaleFactor(0.85)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
         }
     }
 

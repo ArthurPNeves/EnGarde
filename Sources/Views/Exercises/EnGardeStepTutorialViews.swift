@@ -142,7 +142,29 @@ private struct EnGardeStepTutorialScaffold: View {
                                 correctPanel
                             }
 
-                            PrimaryActionButton(title: buttonTitle, symbolName: "arrow.right", action: action)
+                            HStack(spacing: 10) {
+                                Button {
+                                    segmentIndex = 0
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "arrow.left")
+                                            .font(.subheadline.weight(.bold))
+                                        Text("BACK")
+                                            .font(.subheadline.weight(.bold))
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 13)
+                                    .background(Color.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 13, style: .continuous)
+                                            .strokeBorder(.white.opacity(0.22), lineWidth: 1)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+
+                                PrimaryActionButton(title: buttonTitle, symbolName: "arrow.right", action: action)
+                            }
                         }
                     }
                     .padding(20)

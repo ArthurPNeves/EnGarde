@@ -9,7 +9,7 @@ struct RootSplitView: View {
     var body: some View {
         NavigationSplitView {
             sidebar
-                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 260)
+                .navigationSplitViewColumnWidth(min: 190, ideal: 215, max: 230)
         } detail: {
             detailContent
                 .padding(isCameraDestination ? 0 : 24)
@@ -52,7 +52,7 @@ struct RootSplitView: View {
 
             Spacer(minLength: 0)
 
-            HStack(spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "moon.stars.fill")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -64,11 +64,11 @@ struct RootSplitView: View {
                     Text("Switch to dark")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                    ThemeToggleButton(isDarkMode: $prefersDarkAppearance)
+                        .padding(.top, 8)
                 }
-
-                Spacer()
-
-                ThemeToggleButton(isDarkMode: $prefersDarkAppearance)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(14)
             .padding(16)

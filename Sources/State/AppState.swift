@@ -118,4 +118,20 @@ final class AppState: ObservableObject {
     func returnToEnGarde() {
         navigate(to: .exercises)
     }
+
+    func goBackToTutorial(from mode: PoseTrainingMode) {
+        switch mode {
+        case .setup:
+            activeFlow = .cameraSetupTutorial
+        case .enGarde:
+            switch currentEnGardeStep {
+            case .upperBody:
+                openEnGardeUpperBodyTutorial()
+            case .lowerBody:
+                openEnGardeLowerBodyTutorial()
+            case .fullPose, .completed:
+                openEnGardeFullPoseTutorial()
+            }
+        }
+    }
 }
