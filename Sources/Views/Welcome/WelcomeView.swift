@@ -4,71 +4,97 @@ struct WelcomeView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Welcome 👋")
-                .font(.system(size: 42, weight: .bold, design: .rounded))
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 0) {
+            Spacer(minLength: 16)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    Text("Your AI fencing coach. Learn faster with real-time visual feedback.")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.secondary)
+            VStack(spacing: 26) {
+                Text("Welcome to En Garde 👋")
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .frame(maxWidth: .infinity, alignment: .center)
 
-                    HStack(spacing: 18) {
-                        topicCard(title: "Camera Vision", symbolName: "camera")
-                        topicCard(title: "Posture Analysis", symbolName: "waveform.path.ecg")
-                        topicCard(title: "Fencing Drills", symbolName: "figure.run")
-                    }
-                    .frame(maxWidth: .infinity)
+                Text("Your AI-powered fencing coach. Master your stance with real-time computer vision.")
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(maxWidth: 880)
 
-                    PrimaryActionButton(title: "Begin Training", symbolName: "figure.fencing") {
-                        appState.beginTrainingFromWelcome()
-                    }
+                HStack(alignment: .top, spacing: 34) {
+                    FeatureColumn(
+                        symbolName: "camera.viewfinder",
+                        title: "Camera Vision",
+                        description: "Tracks your joints in real-time."
+                    )
+                    FeatureColumn(
+                        symbolName: "waveform.path.ecg",
+                        title: "Posture Analysis",
+                        description: "Provides instant feedback on your stance."
+                    )
+                    FeatureColumn(
+                        symbolName: "figure.fencing",
+                        title: "Fencing Drills",
+                        description: "Master the En Garde step-by-step."
+                    )
                 }
-                .padding(12)
-                .frame(maxWidth: 1240)
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
-            .scrollIndicators(.hidden)
-        }
-    }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 6)
 
-    private func topicCard(title: String, symbolName: String) -> some View {
-        TopicCard(title: title, symbolName: symbolName)
+                Button {
+                    appState.beginTrainingFromWelcome()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "play.fill")
+                            .font(.headline.weight(.bold))
+                        Text("Begin Training")
+                            .font(.title3.weight(.bold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(
+                        LinearGradient(
+                            colors: [Color(red: 0.12, green: 0.50, blue: 0.98), Color(red: 0.06, green: 0.40, blue: 0.92)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        in: Capsule(style: .continuous)
+                    )
+                    .shadow(color: Color.blue.opacity(0.35), radius: 14, y: 8)
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: 760)
+                .padding(.top, 12)
+            }
+            .frame(maxWidth: 1240)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+
+            Spacer(minLength: 18)
+        }
     }
 }
 
-private struct TopicCard: View {
+private struct FeatureColumn: View {
     let title: String
     let symbolName: String
-
-    @State private var isHovering: Bool = false
+    let description: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(spacing: 10) {
             Image(systemName: symbolName)
-                .font(.system(size: 26, weight: .semibold))
-                .frame(width: 54, height: 54)
-                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .font(.system(size: 40, weight: .bold))
+                .foregroundStyle(Color(red: 0.19, green: 0.60, blue: 1.0))
 
             Text(title)
-                .font(.title2.weight(.bold))
+                .font(.title3.weight(.bold))
 
-            Spacer(minLength: 0)
+            Text(description)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(maxWidth: 250)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, minHeight: 220, alignment: .topLeading)
-        .background(Color.white.opacity(isHovering ? 0.14 : 0.08), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(.white.opacity(isHovering ? 0.35 : 0.18), lineWidth: 1)
-        )
-        .scaleEffect(isHovering ? 1.03 : 1.0)
-        .shadow(color: .black.opacity(isHovering ? 0.22 : 0.08), radius: isHovering ? 14 : 6, y: isHovering ? 8 : 3)
-        .animation(.easeOut(duration: 0.18), value: isHovering)
-        .onHover { hovering in
-            isHovering = hovering
-        }
+        .frame(maxWidth: .infinity)
     }
 }
