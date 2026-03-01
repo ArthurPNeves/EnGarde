@@ -153,7 +153,7 @@ struct CameraTrainingView: View {
             .buttonStyle(.plain)
 
             if isReferencePoseVisible {
-                ResourceImageView(name: "engardeposevertical")
+                ResourceImageView(name: referencePoseImageName)
                     .scaledToFit()
                     .frame(width: 170)
                     .padding(8)
@@ -164,6 +164,33 @@ struct CameraTrainingView: View {
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
+        }
+    }
+
+    private var referencePoseImageName: String {
+        switch mode {
+        case .setup:
+            return "camSetup_correct"
+        case .enGarde:
+            switch appState.currentEnGardeStep {
+            case .upperBody:
+                return resourceExists(named: "uperr_correct") ? "uperr_correct" : "upper_correct"
+            case .lowerBody:
+                return "lower_correct"
+            case .fullPose, .completed:
+                return "full_correct"
+            }
+        }
+    }
+
+    private func resourceExists(named name: String) -> Bool {
+        if Bundle.module.url(forResource: name, withExtension: nil) != nil {
+            return true
+        }
+
+        let candidates = ["png", "jpg", "jpeg", "heic", "webp"]
+        return candidates.contains { ext in
+            Bundle.module.url(forResource: name, withExtension: ext) != nil
         }
     }
 

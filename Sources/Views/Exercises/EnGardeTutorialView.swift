@@ -2,7 +2,6 @@ import SwiftUI
 
 struct EnGardeTutorialView: View {
     @EnvironmentObject private var appState: AppState
-    @State private var segmentIndex: Int = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -13,67 +12,33 @@ struct EnGardeTutorialView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 18) {
-                        if segmentIndex == 0 {
-                            Text("Mission 1/2 · Build your En garde base")
-                                .font(.title3.weight(.semibold))
+                        Text("Build your En garde base")
+                            .font(.title3.weight(.semibold))
 
-                            HStack(spacing: 12) {
-                                tutorialImageCard(resourceName: "template", title: "Stance shape")
-                                tutorialImageCard(resourceName: "swords", title: "Guard line")
-                            }
+                        Text("Use the references below, then start the guided checks for upper body, lower body, and full pose.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
 
-                            HStack(spacing: 8) {
-                                quickTag("Knees bent")
-                                quickTag("Wide base")
-                                quickTag("Arms ready")
-                                quickTag("Hold 5s")
-                            }
+                        HStack(spacing: 12) {
+                            mediaCard(resourceName: "EnGardePose", title: "Reference pose")
+                            mediaCard(resourceName: "usabilityVideo", title: "Usability video")
+                        }
 
-                            Toggle(isOn: $appState.isRightHanded) {
-                                Text(appState.isRightHanded ? "Right-handed stance" : "Left-handed stance")
-                                    .font(.subheadline.weight(.medium))
-                            }
-                            .toggleStyle(.switch)
+                        HStack(spacing: 8) {
+                            quickTag("Knees bent")
+                            quickTag("Wide base")
+                            quickTag("Arms ready")
+                            quickTag("Hold 5s")
+                        }
 
-                            nextButton(title: "NEXT") {
-                                segmentIndex = 1
-                            }
-                        } else {
-                            Text("Mission 2/2 · Spot the right posture")
-                                .font(.title3.weight(.semibold))
+                        Toggle(isOn: $appState.isRightHanded) {
+                            Text(appState.isRightHanded ? "Right-handed stance" : "Left-handed stance")
+                                .font(.subheadline.weight(.medium))
+                        }
+                        .toggleStyle(.switch)
 
-                            HStack(alignment: .top, spacing: 14) {
-                                incorrectPanel(
-                                    titles: ["Arms too low", "Narrow base", "Unstable body"]
-                                )
-                                correctPanel()
-                            }
-
-                            HStack(spacing: 10) {
-                                Button {
-                                    segmentIndex = 0
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "arrow.left")
-                                            .font(.subheadline.weight(.bold))
-                                        Text("BACK")
-                                            .font(.subheadline.weight(.bold))
-                                    }
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 13)
-                                    .background(Color.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 13, style: .continuous)
-                                            .strokeBorder(.white.opacity(0.22), lineWidth: 1)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-
-                                nextButton(title: "START EN GARDE CHECK") {
-                                    appState.openEnGardeUpperBodyTutorial()
-                                }
-                            }
+                        nextButton(title: "START EN GARDE CHECK") {
+                            appState.openEnGardeUpperBodyTutorial()
                         }
                     }
                     .padding(20)
@@ -130,93 +95,28 @@ struct EnGardeTutorialView: View {
             .background(Color.white.opacity(0.08), in: Capsule(style: .continuous))
     }
 
-    private func tutorialImageCard(resourceName: String, title: String) -> some View {
+    private func mediaCard(resourceName: String, title: String) -> some View {
         VStack(spacing: 6) {
-            ResourceImageView(name: resourceName)
-                .scaledToFill()
-                .frame(height: 220)
-                .frame(maxWidth: .infinity)
-                .clipped()
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.black.opacity(0.25))
+
+                ResourceImageView(name: resourceName)
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(8)
+            }
+            .frame(height: 280)
+            .frame(maxWidth: .infinity)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-    }
-
-    private func incorrectPanel(titles: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("X Incorrect", systemImage: "xmark.circle.fill")
-                .font(.headline)
-                .foregroundStyle(.red)
-
-            HStack(spacing: 8) {
-                ForEach(titles, id: \.self) { title in
-                    VStack(spacing: 5) {
-                        ResourceImageView(name: "template_vertical")
-                            .scaledToFill()
-                            .frame(width: 120, height: 170)
-                            .clipped()
-                            .overlay(alignment: .bottom) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(.red)
-                                    .offset(y: 9)
-                            }
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .strokeBorder(.red.opacity(0.65), lineWidth: 1)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-
-                        Text(title)
-                            .font(.caption2)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(.red.opacity(0.9))
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func correctPanel() -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("✓ Correct", systemImage: "checkmark.circle.fill")
-                .font(.headline)
-                .foregroundStyle(.green)
-
-            ZStack {
-                ResourceImageView(name: "template_vertical")
-                    .scaledToFill()
-                    .frame(height: 150)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(.green.opacity(0.75), lineWidth: 1.2)
-
-                VStack {
-                    Spacer()
-                    Image(systemName: "figure.fencing")
-                        .font(.title)
-                        .foregroundStyle(.green)
-                    Spacer()
-                    HStack {
-                        Rectangle().fill(.green.opacity(0.6)).frame(height: 1)
-                        Rectangle().fill(.green.opacity(0.6)).frame(height: 1)
-                    }
-                    .padding(.horizontal, 22)
-                    .padding(.bottom, 10)
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        }
-        .frame(width: 280, alignment: .leading)
     }
 }
