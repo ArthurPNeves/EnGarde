@@ -4,63 +4,71 @@ struct WelcomeView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(spacing: 10) {
-                Image(systemName: "figure.fencing")
-                    .font(.title2.weight(.semibold))
-                Text("En garde")
-                    .font(.largeTitle.weight(.bold))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text("AI-powered fencing posture coach")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Welcome 👋")
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            GlassCard {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("About the App")
-                        .font(.title2.weight(.bold))
-
-                    Text("En garde helps you train with computer-vision posture guidance. Use your camera for real-time stance checks, then progress through structured fencing drills with immediate feedback.")
-                        .font(.body)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text("Your AI fencing coach. Learn faster with real-time visual feedback.")
+                        .font(.title2.weight(.semibold))
                         .foregroundStyle(.secondary)
 
-                    Divider()
+                    HStack(spacing: 18) {
+                        topicCard(title: "Camera Vision", symbolName: "camera")
+                        topicCard(title: "Posture Analysis", symbolName: "waveform.path.ecg")
+                        topicCard(title: "Fencing Drills", symbolName: "figure.run")
+                    }
+                    .frame(maxWidth: .infinity)
 
-                    VStack(alignment: .leading, spacing: 14) {
-                        featureRow(title: "Camera Vision", subtitle: "Real-time full-body detection", symbolName: "camera")
-                        featureRow(title: "Posture Analysis", subtitle: "Instant form feedback", symbolName: "waveform.path.ecg")
-                        featureRow(title: "Fencing Drills", subtitle: "Guided exercise progression", symbolName: "figure.run")
+                    PrimaryActionButton(title: "Begin Training", symbolName: "figure.fencing") {
+                        appState.beginTrainingFromWelcome()
                     }
                 }
+                .padding(12)
+                .frame(maxWidth: 1240)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .frame(maxWidth: 900)
-            .frame(maxWidth: .infinity, alignment: .center)
-
-            PrimaryActionButton(title: "Begin Training", symbolName: "figure.fencing") {
-                appState.beginTrainingFromWelcome()
-            }
-            .frame(maxWidth: 900)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .scrollIndicators(.hidden)
         }
     }
 
-    @ViewBuilder
-    private func featureRow(title: String, subtitle: String, symbolName: String) -> some View {
-        HStack(spacing: 12) {
+    private func topicCard(title: String, symbolName: String) -> some View {
+        TopicCard(title: title, symbolName: symbolName)
+    }
+}
+
+private struct TopicCard: View {
+    let title: String
+    let symbolName: String
+
+    @State private var isHovering: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
             Image(systemName: symbolName)
-                .font(.headline.weight(.semibold))
-                .frame(width: 30, height: 30)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+                .font(.system(size: 26, weight: .semibold))
+                .frame(width: 54, height: 54)
+                .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Text(title)
+                .font(.title2.weight(.bold))
+
+            Spacer(minLength: 0)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, minHeight: 220, alignment: .topLeading)
+        .background(Color.white.opacity(isHovering ? 0.14 : 0.08), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(.white.opacity(isHovering ? 0.35 : 0.18), lineWidth: 1)
+        )
+        .scaleEffect(isHovering ? 1.03 : 1.0)
+        .shadow(color: .black.opacity(isHovering ? 0.22 : 0.08), radius: isHovering ? 14 : 6, y: isHovering ? 8 : 3)
+        .animation(.easeOut(duration: 0.18), value: isHovering)
+        .onHover { hovering in
+            isHovering = hovering
         }
     }
 }

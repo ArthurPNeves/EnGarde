@@ -7,12 +7,7 @@ struct EnGardeTutorialView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("En garde Tutorial", systemImage: "figure.fencing")
-                .font(.largeTitle.weight(.bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text("Stance & Alignment")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView {
@@ -60,11 +55,7 @@ struct EnGardeTutorialView: View {
                         }
                     }
                     .padding(20)
-                    .frame(maxWidth: 780, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                    )
+                    .frame(maxWidth: 1280, alignment: .leading)
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(.white.opacity(0.16), lineWidth: 1)
@@ -114,14 +105,14 @@ struct EnGardeTutorialView: View {
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(.thinMaterial, in: Capsule(style: .continuous))
+            .background(Color.white.opacity(0.08), in: Capsule(style: .continuous))
     }
 
     private func tutorialImageCard(resourceName: String, title: String) -> some View {
         VStack(spacing: 6) {
             ResourceImageView(name: resourceName)
                 .scaledToFill()
-                .frame(height: 165)
+                .frame(height: 220)
                 .frame(maxWidth: .infinity)
                 .clipped()
                 .overlay(
@@ -147,7 +138,7 @@ struct EnGardeTutorialView: View {
                     VStack(spacing: 5) {
                         ResourceImageView(name: "template_vertical")
                             .scaledToFill()
-                            .frame(width: 92, height: 130)
+                            .frame(width: 120, height: 170)
                             .clipped()
                             .overlay(alignment: .bottom) {
                                 Image(systemName: "xmark.circle.fill")
@@ -204,6 +195,6 @@ struct EnGardeTutorialView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
-        .frame(width: 220, alignment: .leading)
+        .frame(width: 280, alignment: .leading)
     }
 }

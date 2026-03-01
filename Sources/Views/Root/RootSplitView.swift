@@ -9,6 +9,7 @@ struct RootSplitView: View {
     var body: some View {
         NavigationSplitView {
             sidebar
+                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 260)
         } detail: {
             detailContent
                 .padding(isCameraDestination ? 0 : 24)
@@ -23,7 +24,7 @@ struct RootSplitView: View {
             VStack(alignment: .leading, spacing: 14) {
                 ResourceImageView(name: "Logo")
                     .scaledToFit()
-                    .frame(width: 120, height: 48, alignment: .leading)
+                    .frame(width: 240, height: 96, alignment: .leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)

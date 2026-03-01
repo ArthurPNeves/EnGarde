@@ -6,12 +6,7 @@ struct CamSetupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("Camera Setup", systemImage: "figure.fencing")
-                .font(.largeTitle.weight(.bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text("Capture & Calibration")
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView {
@@ -72,11 +67,7 @@ struct CamSetupView: View {
                         .buttonStyle(.plain)
                     }
                     .padding(18)
-                    .frame(maxWidth: 760, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                    )
+                    .frame(maxWidth: 1120, alignment: .leading)
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(.white.opacity(0.16), lineWidth: 1)
@@ -110,7 +101,7 @@ struct CamSetupView: View {
             }
         }
         .padding(10)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func dotColumn(color: Color) -> some View {

@@ -9,7 +9,7 @@ struct CongratsView: View {
             GlassCard {
                 VStack(alignment: .leading, spacing: 14) {
                     Label("Congrats", systemImage: "sparkles")
-                        .font(.largeTitle.weight(.bold))
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
 
                     Text("You held a valid en garde stance for 5 seconds. Great work.")
                         .font(.title3)

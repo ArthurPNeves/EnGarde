@@ -9,11 +9,6 @@ struct GuideView: View {
                 .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text("Fencing Fundamentals & App Use")
-                .font(.title2.weight(.medium))
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
             ScrollView {
                 VStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 22) {

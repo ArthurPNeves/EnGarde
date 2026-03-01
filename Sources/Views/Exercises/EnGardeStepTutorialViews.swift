@@ -6,7 +6,6 @@ struct UpperBodyTutorialView: View {
     var body: some View {
         EnGardeStepTutorialScaffold(
             title: "Upper Body Tutorial",
-            subtitle: "Front arm, back arm, blade line",
             description: "Focus on your upper body. Point the front arm forward with a slight bend at the elbow and keep the back arm elevated for balance.",
             bullets: [
                 "Front arm points forward",
@@ -27,7 +26,6 @@ struct LowerBodyTutorialView: View {
     var body: some View {
         EnGardeStepTutorialScaffold(
             title: "Lower Body Tutorial",
-            subtitle: "Deep bend and wide stance",
             description: "Now train your lower body. Keep both knees deeply bent and maintain a wide base so your stance is grounded and stable.",
             bullets: [
                 "Both knees deeply bent",
@@ -48,7 +46,6 @@ struct FullPoseTutorialView: View {
     var body: some View {
         EnGardeStepTutorialScaffold(
             title: "Full Pose Tutorial",
-            subtitle: "Combine upper and lower body",
             description: "Combine everything: upper body alignment and lower body structure. Hold the full en garde pose for 5 seconds to complete the drill.",
             bullets: [
                 "Front arm forward and controlled",
@@ -65,7 +62,6 @@ struct FullPoseTutorialView: View {
 
 private struct EnGardeStepTutorialScaffold: View {
     let title: String
-    let subtitle: String
     let description: String
     let bullets: [String]
     let imageName: String
@@ -77,12 +73,7 @@ private struct EnGardeStepTutorialScaffold: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Label(title, systemImage: "figure.fencing")
-                .font(.largeTitle.weight(.bold))
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            Text(subtitle)
-                .font(.title3.weight(.medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             ScrollView {
@@ -108,7 +99,7 @@ private struct EnGardeStepTutorialScaffold: View {
                                         .font(.caption.weight(.semibold))
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                        .background(.thinMaterial, in: Capsule(style: .continuous))
+                                        .background(Color.white.opacity(0.08), in: Capsule(style: .continuous))
                                 }
                             }
 
@@ -155,11 +146,7 @@ private struct EnGardeStepTutorialScaffold: View {
                         }
                     }
                     .padding(20)
-                    .frame(maxWidth: 780, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                    )
+                    .frame(maxWidth: 1280, alignment: .leading)
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(.white.opacity(0.16), lineWidth: 1)

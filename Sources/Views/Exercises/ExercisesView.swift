@@ -6,21 +6,23 @@ struct ExercisesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("En garde")
-                .font(.largeTitle.weight(.bold))
+                .font(.system(size: 42, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
-                exerciseCard(
-                    title: "En garde",
-                    subtitle: "Foundation stance",
-                    symbolName: "figure.fencing",
-                    isLocked: false
-                ) {
-                    appState.startEnGardeFlow()
+            ScrollView {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 260), spacing: 16)], spacing: 16) {
+                    exerciseCard(
+                        title: "En garde",
+                        symbolName: "figure.fencing",
+                        isLocked: false
+                    ) {
+                        appState.startEnGardeFlow()
+                    }
                 }
+                .frame(maxWidth: 940)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .frame(maxWidth: 940)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .scrollIndicators(.hidden)
 
             Spacer(minLength: 0)
         }
@@ -29,7 +31,6 @@ struct ExercisesView: View {
     @ViewBuilder
     private func exerciseCard(
         title: String,
-        subtitle: String,
         symbolName: String,
         isLocked: Bool,
         action: @escaping () -> Void
@@ -48,10 +49,6 @@ struct ExercisesView: View {
 
                 Text(title)
                     .font(.title3.weight(.bold))
-
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
 
                 Spacer(minLength: 0)
             }

@@ -8,7 +8,7 @@ struct UnderConstructionView: View {
             GlassCard {
                 VStack(alignment: .leading, spacing: 12) {
                     Label("En garde", systemImage: "hammer.fill")
-                        .font(.largeTitle.weight(.bold))
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
                     Text("This area is under construction.")
                         .font(.title3)
                         .foregroundStyle(.secondary)
