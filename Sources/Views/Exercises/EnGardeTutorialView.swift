@@ -1,7 +1,9 @@
 import SwiftUI
+import AVKit
 
 struct EnGardeTutorialView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var usabilityPlayer: AVPlayer?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -20,8 +22,8 @@ struct EnGardeTutorialView: View {
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: 12) {
-                            mediaCard(resourceName: "EnGardePose", title: "Reference pose")
-                            mediaCard(resourceName: "usabilityVideo", title: "Usability video")
+                            imageMediaCard(resourceName: "EnGardePose", title: "Reference pose")
+                            videoMediaCard(title: "Usability video")
                         }
 
                         HStack(spacing: 8) {
@@ -52,6 +54,18 @@ struct EnGardeTutorialView: View {
                 .padding(.bottom, 8)
             }
             .scrollIndicators(.hidden)
+        }
+        .onAppear {
+            if usabilityPlayer == nil,
+               let url = Bundle.module.url(forResource: "usabilityVideo", withExtension: "mp4") {
+                let player = AVPlayer(url: url)
+                player.isMuted = true
+                player.play()
+                usabilityPlayer = player
+            }
+        }
+        .onDisappear {
+            usabilityPlayer?.pause()
         }
     }
 
@@ -95,24 +109,31 @@ struct EnGardeTutorialView: View {
             .background(Color.white.opacity(0.08), in: Capsule(style: .continuous))
     }
 
-    private func mediaCard(resourceName: String, title: String) -> some View {
+    private func imageMediaCard(resourceName: String, title: String) -> some View {
         VStack(spacing: 6) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.black.opacity(0.25))
-
-                ResourceImageView(name: resourceName)
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .padding(8)
-            }
+            ResourceImageView(name: resourceName)
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
             .frame(height: 280)
+
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func videoMediaCard(title: String) -> some View {
+        VStack(spacing: 6) {
+            Group {
+                if let usabilityPlayer {
+                    VideoPlayer(player: usabilityPlayer)
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
             .frame(maxWidth: .infinity)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(.white.opacity(0.2), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .frame(height: 280)
 
             Text(title)
                 .font(.caption)
