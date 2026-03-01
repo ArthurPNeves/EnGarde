@@ -7,6 +7,8 @@ struct CamSetupView: View {
     var body: some View {
         GeometryReader { proxy in
             let heroHeight = min(max(proxy.size.height * 0.46, 260), 520)
+            let mistakeWidth = min(max((proxy.size.width - 62) / 2, 220), 420)
+            let mistakeHeight = min(max(proxy.size.height * 0.44, 220), 420)
 
             VStack(alignment: .leading, spacing: 20) {
                 Text("Camera Setup")
@@ -38,11 +40,25 @@ struct CamSetupView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
+                    Spacer(minLength: 0)
+
                     HStack(spacing: 14) {
-                        mistakeThumb(imageName: "camSetup_feetNotShowing", title: "Feet not showing")
-                        mistakeThumb(imageName: "camSetup_neckNotShowing", title: "Neck not showing")
+                        mistakeThumb(
+                            imageName: "camSetup_feetNotShowing",
+                            title: "Feet not showing",
+                            width: mistakeWidth,
+                            height: mistakeHeight
+                        )
+                        mistakeThumb(
+                            imageName: "camSetup_neckNotShowing",
+                            title: "Neck not showing",
+                            width: mistakeWidth,
+                            height: mistakeHeight
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
+
+                    Spacer(minLength: 0)
                 }
 
                 Spacer(minLength: 0)
@@ -91,21 +107,22 @@ struct CamSetupView: View {
         }
     }
 
-    private func mistakeThumb(imageName: String, title: String) -> some View {
+    private func mistakeThumb(imageName: String, title: String, width: CGFloat, height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             ResourceImageView(name: imageName)
                 .scaledToFit()
-                .frame(width: 150, height: 120)
+                .frame(width: width, height: height)
                 .overlay(alignment: .topTrailing) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.title3)
+                        .font(.title)
                         .foregroundStyle(.red)
-                        .padding(6)
+                        .padding(8)
                 }
 
             Text(title)
-                .font(.caption)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .frame(width: width, alignment: .leading)
         }
     }
 }

@@ -30,7 +30,8 @@ struct LowerBodyTutorialView: View {
             tags: ["Both knees deeply bent", "Ankles wider than shoulders", "Weight centered"],
             mistakes: [
                 .init(imageName: "lower_notBend", title: "Lower Not Bend"),
-                .init(imageName: "lower_notOpen", title: "Lower Not Open")
+                .init(imageName: "lower_notOpen", title: "Lower Not Open"),
+                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
             ],
             buttonTitle: "Next"
         ) {
@@ -49,7 +50,8 @@ struct FullPoseTutorialView: View {
             tags: ["Front arm forward & controlled", "Back arm elevated", "Deep knees & wide stance"],
             mistakes: [
                 .init(imageName: "full_upper", title: "Full Upper Incorrect"),
-                .init(imageName: "full_botton", title: "Full Bottom Incorrect")
+                .init(imageName: "full_botton", title: "Full Bottom Incorrect"),
+                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
             ],
             buttonTitle: "Start Full Check"
         ) {
@@ -77,6 +79,10 @@ private struct PoseTutorialScreen: View {
     var body: some View {
         GeometryReader { proxy in
             let heroHeight = min(max(proxy.size.height * 0.46, 260), 540)
+            let count = max(mistakes.count, 1)
+            let totalSpacing = CGFloat(count - 1) * 14
+            let thumbWidth = min(max((proxy.size.width - 48 - totalSpacing) / CGFloat(count), 190), 340)
+            let thumbHeight = min(max(proxy.size.height * 0.44, 220), 420)
 
             VStack(alignment: .leading, spacing: 16) {
                 Text(title)
@@ -104,15 +110,18 @@ private struct PoseTutorialScreen: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
-                    ScrollView(.horizontal) {
-                        HStack(spacing: 14) {
-                            ForEach(mistakes) { mistake in
-                                MistakeThumbnail(mistake: mistake)
-                            }
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 14) {
+                        ForEach(mistakes) { mistake in
+                            MistakeThumbnail(
+                                mistake: mistake,
+                                width: thumbWidth,
+                                height: thumbHeight
+                            )
                         }
-                        .padding(.vertical, 4)
                     }
-                    .scrollIndicators(.hidden)
+                    .frame(maxWidth: .infinity, alignment: .center)
 
                     Spacer(minLength: 0)
                 }
@@ -178,24 +187,45 @@ private struct PoseTutorialScreen: View {
 
 private struct MistakeThumbnail: View {
     let mistake: PoseMistake
+    let width: CGFloat
+    let height: CGFloat
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             ResourceImageView(name: mistake.imageName)
                 .scaledToFit()
-                .frame(width: 150, height: 120)
+                .frame(width: width, height: height)
                 .overlay(alignment: .topTrailing) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.title3)
+                        .font(.title)
                         .foregroundStyle(.red)
-                        .padding(6)
+                        .padding(8)
                 }
 
             Text(mistake.title)
-                .font(.caption)
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
-                .frame(width: 150, alignment: .leading)
+                .frame(width: width, alignment: .leading)
         }
     }
+}
+
+private func resolvedCrabImageName() -> String {
+    let candidates = ["Crab", "crab", "crabImage", "crab_pose", "Pasted image"]
+    let extensions = ["png", "jpg", "jpeg", "heic", "webp"]
+
+    for name in candidates {
+        if Bundle.module.url(forResource: name, withExtension: nil) != nil {
+            return name
+        }
+
+        for ext in extensions {
+            if Bundle.module.url(forResource: name, withExtension: ext) != nil {
+                return name
+            }
+        }
+    }
+
+    return "Pasted image"
 }
