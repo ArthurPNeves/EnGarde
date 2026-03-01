@@ -155,7 +155,7 @@ struct CameraTrainingView: View {
             if isReferencePoseVisible {
                 ResourceImageView(name: referencePoseImageName)
                     .scaledToFit()
-                    .frame(width: referencePoseWidth)
+                    .frame(width: 170)
                     .padding(8)
                     .background(Color.black.opacity(0.3), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .overlay(
@@ -164,16 +164,6 @@ struct CameraTrainingView: View {
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
-        }
-    }
-
-    private var referencePoseWidth: CGFloat {
-        guard mode == .enGarde else { return 170 }
-        switch appState.currentEnGardeStep {
-        case .fullPose, .completed:
-            return 260
-        default:
-            return 170
         }
     }
 

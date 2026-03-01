@@ -31,7 +31,7 @@ struct LowerBodyTutorialView: View {
             mistakes: [
                 .init(imageName: "lower_notBend", title: "Lower Not Bend"),
                 .init(imageName: "lower_notOpen", title: "Lower Not Open"),
-                .init(imageName: resolvedCrabImageName(), title: "Fencers walk like a crab so keep feet foward", isValidSignal: true)
+                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
             ],
             buttonTitle: "Next"
         ) {
@@ -51,7 +51,7 @@ struct FullPoseTutorialView: View {
             mistakes: [
                 .init(imageName: "full_upper", title: "Full Upper Incorrect"),
                 .init(imageName: "full_botton", title: "Full Bottom Incorrect"),
-                .init(imageName: resolvedCrabImageName(), title: "Fencers walk like a crab so keep feet foward", isValidSignal: true)
+                .init(imageName: resolvedCrabImageName(), title: "Front foot not straight")
             ],
             buttonTitle: "Start Full Check"
         ) {
@@ -64,7 +64,6 @@ private struct PoseMistake: Identifiable {
     let id = UUID()
     let imageName: String
     let title: String
-    let isValidSignal: Bool = false
 }
 
 private struct PoseTutorialScreen: View {
@@ -197,20 +196,10 @@ private struct MistakeThumbnail: View {
                 .scaledToFit()
                 .frame(width: width, height: height)
                 .overlay(alignment: .topTrailing) {
-                    if mistake.isValidSignal {
-                        Label("Valid", systemImage: "checkmark.circle.fill")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color.green, in: Capsule(style: .continuous))
-                            .padding(8)
-                    } else {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title)
-                            .foregroundStyle(.red)
-                            .padding(8)
-                    }
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title)
+                        .foregroundStyle(.red)
+                        .padding(8)
                 }
 
             Text(mistake.title)
