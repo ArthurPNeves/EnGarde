@@ -9,7 +9,7 @@ struct RootSplitView: View {
     var body: some View {
         NavigationSplitView {
             sidebar
-                .navigationSplitViewColumnWidth(min: 190, ideal: 215, max: 230)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 265)
         } detail: {
             detailContent
                 .padding(isCameraDestination ? 0 : 24)
@@ -24,7 +24,7 @@ struct RootSplitView: View {
             VStack(alignment: .leading, spacing: 14) {
                 ResourceImageView(name: "Logo")
                     .scaledToFit()
-                    .frame(width: 240, height: 96, alignment: .leading)
+                    .frame(maxWidth: 170, maxHeight: 84, alignment: .leading)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(20)
@@ -53,11 +53,6 @@ struct RootSplitView: View {
             Spacer(minLength: 0)
 
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "moon.stars.fill")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 34, height: 34)
-
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Dark Mode")
                         .font(.headline)

@@ -118,7 +118,7 @@ struct CameraTrainingView: View {
     private var holdProgressLine: some View {
         GeometryReader { proxy in
             let progress = max(0, min(poseEstimatorViewModel.holdProgress, 1))
-            let fillColor: Color = progress >= 1 ? .green : .red
+            let fillColor: Color = progress >= 1 ? .green : .yellow
 
             ZStack(alignment: .leading) {
                 Capsule(style: .continuous)
