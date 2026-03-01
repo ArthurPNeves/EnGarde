@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CamSetupView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var pageIndex: Int = 0
 
     var body: some View {
         GeometryReader { proxy in
@@ -11,34 +12,47 @@ struct CamSetupView: View {
                 Text("Camera Setup")
                     .font(.system(size: 44, weight: .bold, design: .rounded))
 
-                HStack(spacing: 22) {
-                    dotLegendItem(color: .red, text: "Outside Frame")
-                    dotLegendItem(color: .yellow, text: "Keep Still")
-                    dotLegendItem(color: .green, text: "Practice Ready")
-                }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
+                if pageIndex == 0 {
+                    Text("Keep your full body visible from neck to feet. Once framing is stable, continue.")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
 
-                ResourceImageView(name: "camSetup_correct")
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: heroHeight)
+                    HStack(spacing: 22) {
+                        dotLegendItem(color: .red, text: "Outside Frame")
+                        dotLegendItem(color: .yellow, text: "Keep Still")
+                        dotLegendItem(color: .green, text: "Practice Ready")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
 
-                VStack(alignment: .leading, spacing: 10) {
+                    ResourceImageView(name: "camSetup_correct")
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: heroHeight)
+                } else {
+                    Text("Common mistakes to avoid before starting calibration.")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+
                     Text("Avoid Common Mistakes")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
                     HStack(spacing: 14) {
-                        mistakeThumb(imageName: "camSetup_feetNotShowing", title: "Feet Not Showing")
-                        mistakeThumb(imageName: "camSetup_neckNotShowing", title: "Neck Not Showing")
+                        mistakeThumb(imageName: "camSetup_feetNotShowing", title: "Feet not showing")
+                        mistakeThumb(imageName: "camSetup_neckNotShowing", title: "Neck not showing")
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                 }
 
                 Spacer(minLength: 0)
 
                 Button {
-                    appState.startSetupCameraFlow()
+                    if pageIndex == 0 {
+                        pageIndex = 1
+                    } else {
+                        appState.startSetupCameraFlow()
+                    }
                 } label: {
                     HStack(spacing: 10) {
                         Spacer()

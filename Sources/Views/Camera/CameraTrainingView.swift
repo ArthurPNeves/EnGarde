@@ -178,7 +178,7 @@ struct CameraTrainingView: View {
             case .lowerBody:
                 return "lower_correct"
             case .fullPose, .completed:
-                return "full_correct"
+                return "Full_correct2"
             }
         }
     }

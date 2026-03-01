@@ -72,6 +72,8 @@ private struct PoseTutorialScreen: View {
     let buttonTitle: String
     let action: () -> Void
 
+    @State private var pageIndex: Int = 0
+
     var body: some View {
         GeometryReader { proxy in
             let heroHeight = min(max(proxy.size.height * 0.46, 260), 540)
@@ -80,35 +82,51 @@ private struct PoseTutorialScreen: View {
                 Text(title)
                     .font(.system(size: 44, weight: .bold, design: .rounded))
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 18) {
-                        ResourceImageView(name: heroImageName)
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .frame(height: heroHeight)
+                if pageIndex == 0 {
+                    Text(briefInstruction)
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
 
-                        tagsRow
+                    ResourceImageView(name: heroImageName)
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: heroHeight)
 
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Avoid Common Mistakes")
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(.secondary)
+                    tagsRow
 
-                            HStack(spacing: 14) {
-                                ForEach(mistakes) { mistake in
-                                    MistakeThumbnail(mistake: mistake)
-                                }
+                    Spacer(minLength: 0)
+                } else {
+                    Text("Common mistakes to avoid before starting the check.")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+
+                    Text("Avoid Common Mistakes")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    ScrollView(.horizontal) {
+                        HStack(spacing: 14) {
+                            ForEach(mistakes) { mistake in
+                                MistakeThumbnail(mistake: mistake)
                             }
                         }
+                        .padding(.vertical, 4)
                     }
-                    .padding(.bottom, 10)
-                }
-                .scrollIndicators(.hidden)
+                    .scrollIndicators(.hidden)
 
-                Button(action: action) {
+                    Spacer(minLength: 0)
+                }
+
+                Button {
+                    if pageIndex == 0 {
+                        pageIndex = 1
+                    } else {
+                        action()
+                    }
+                } label: {
                     HStack(spacing: 10) {
                         Spacer()
-                        Text(buttonTitle)
+                        Text(pageIndex == 0 ? "Next" : buttonTitle)
                             .font(.title3.weight(.bold))
                         Image(systemName: "arrow.right")
                             .font(.title3.weight(.bold))
@@ -131,6 +149,17 @@ private struct PoseTutorialScreen: View {
             .padding(.horizontal, 24)
             .padding(.top, 8)
             .padding(.bottom, 18)
+        }
+    }
+
+    private var briefInstruction: String {
+        switch title {
+        case "Upper Body":
+            return "Align your arms: front arm forward with slight bend, back arm elevated."
+        case "Lower Body":
+            return "Set a strong base: bend both knees and keep your stance wide and centered."
+        default:
+            return "Combine upper and lower body alignment, then hold a stable full En Garde posture."
         }
     }
 

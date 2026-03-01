@@ -4,30 +4,44 @@ struct GuideView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label("Guide", systemImage: "figure.fencing")
-                .font(.system(size: 42, weight: .bold, design: .rounded))
-                .frame(maxWidth: .infinity, alignment: .leading)
+        GeometryReader { proxy in
+            let topImageMaxHeight = min(max(proxy.size.height * 0.22, 140), 220)
+            let usageImageMaxHeight = min(max(proxy.size.height * 0.28, 180), 280)
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    Text("Fencing is about distance, timing, balance, and control. The En Garde stance is your base: stable legs, ready arms, and clear posture before every action.")
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Guide")
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
 
-                    HStack(spacing: 18) {
-                        guideImage(resourceName: "EnGardePose", label: "En Garde stance")
-                        guideImage(resourceName: preferredFightImageName, label: "Fight context")
-                    }
+                Text("Fencing is about distance, timing, balance, and control. The En Garde stance is your base: stable legs, ready arms, and clear posture before every action.")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: 800, alignment: .leading)
 
+                HStack(alignment: .top, spacing: 18) {
+                    illustrationCard(resourceName: "EnGardePose", label: "En Garde stance", maxHeight: topImageMaxHeight)
+                    illustrationCard(resourceName: preferredFightImageName, label: "Fight context", maxHeight: topImageMaxHeight)
+                }
+                .frame(maxWidth: .infinity)
+
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Our algorithm detects key joints and posture angles in real time to tell you exactly what to adjust.")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: 760, alignment: .leading)
 
-                    guideImage(resourceName: "usageImage", label: "Real-time algorithm feedback")
+                    ResourceImageView(name: "usageImage")
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(maxHeight: usageImageMaxHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
 
+                Spacer(minLength: 8)
+
+                VStack(alignment: .leading, spacing: 10) {
                     Text("Before training, setup your camera.")
-                        .font(.title3.weight(.medium))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
 
                     Button {
                         appState.advanceFromGuide()
@@ -61,16 +75,12 @@ struct GuideView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 8)
-                .frame(maxWidth: 980, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.bottom, 20)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .scrollIndicators(.hidden)
-            .overlay(alignment: .bottom) {
-                guideScrollCue
-            }
+            .frame(maxWidth: 1000, maxHeight: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
+            .padding(.bottom, 18)
         }
     }
 
@@ -89,26 +99,11 @@ struct GuideView: View {
         }
     }
 
-    private var guideScrollCue: some View {
-        VStack(spacing: 4) {
-            Image(systemName: "chevron.down")
-                .font(.caption.weight(.bold))
-            Text("Scroll")
-                .font(.caption2.weight(.semibold))
-        }
-        .foregroundStyle(.white.opacity(0.85))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.black.opacity(0.22), in: Capsule(style: .continuous))
-        .padding(.bottom, 8)
-        .allowsHitTesting(false)
-    }
-
-    private func guideImage(resourceName: String, label: String) -> some View {
+    private func illustrationCard(resourceName: String, label: String, maxHeight: CGFloat) -> some View {
         VStack(spacing: 6) {
             ResourceImageView(name: resourceName)
                 .scaledToFit()
-                .frame(height: 250)
+                .frame(maxHeight: maxHeight)
                 .frame(maxWidth: .infinity)
 
             Text(label)
