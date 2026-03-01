@@ -128,21 +128,27 @@ struct CamSetupView: View {
 
     private func incorrectCard(imageName: String) -> some View {
         VStack(spacing: 5) {
-            ResourceImageView(name: imageName)
-                .scaledToFill()
-                .frame(width: 92, height: 130)
-                .clipped()
-                .overlay(alignment: .bottom) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.red)
-                        .offset(y: 9)
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(.red.opacity(0.65), lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.black.opacity(0.28))
+
+                ResourceImageView(name: imageName)
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(4)
+            }
+            .frame(width: 92, height: 130)
+            .overlay(alignment: .bottom) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(.red)
+                    .padding(.bottom, 4)
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(.red.opacity(0.65), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
             Text(readableSubtitle(from: imageName))
                 .font(.caption2)
@@ -158,11 +164,14 @@ struct CamSetupView: View {
                 .foregroundStyle(.green)
 
             ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.black.opacity(0.28))
+
                 ResourceImageView(name: "camSetup_correct")
-                    .scaledToFill()
+                    .scaledToFit()
                     .frame(height: 150)
                     .frame(maxWidth: .infinity)
-                    .clipped()
+                    .padding(6)
 
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .strokeBorder(.green.opacity(0.75), lineWidth: 1.2)

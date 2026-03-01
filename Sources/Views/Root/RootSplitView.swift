@@ -9,7 +9,7 @@ struct RootSplitView: View {
     var body: some View {
         NavigationSplitView {
             sidebar
-                .navigationSplitViewColumnWidth(min: 120, ideal: 140, max: 160)
+                .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 170)
         } detail: {
             detailContent
                 .padding(isCameraDestination ? 0 : 24)

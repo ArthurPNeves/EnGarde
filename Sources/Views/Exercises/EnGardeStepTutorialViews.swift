@@ -92,9 +92,11 @@ private struct EnGardeStepTutorialScaffold: View {
                                 .font(.title3.weight(.semibold))
 
                             ResourceImageView(name: imageName)
-                                .scaledToFill()
+                                .scaledToFit()
                                 .frame(height: 210)
                                 .frame(maxWidth: .infinity)
+                                .padding(8)
+                                .background(Color.black.opacity(0.28), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -202,21 +204,27 @@ private struct EnGardeStepTutorialScaffold: View {
             HStack(spacing: 8) {
                 ForEach(incorrectImageNames, id: \.self) { imageName in
                     VStack(spacing: 5) {
-                        ResourceImageView(name: imageName)
-                            .scaledToFill()
-                            .frame(width: 92, height: 130)
-                            .clipped()
-                            .overlay(alignment: .bottom) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(.red)
-                                    .offset(y: 9)
-                            }
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .strokeBorder(.red.opacity(0.65), lineWidth: 1)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color.black.opacity(0.28))
+
+                            ResourceImageView(name: imageName)
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(4)
+                        }
+                        .frame(width: 92, height: 130)
+                        .overlay(alignment: .bottom) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.red)
+                                .padding(.bottom, 4)
+                        }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .strokeBorder(.red.opacity(0.65), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                         Text(readableSubtitle(from: imageName))
                             .font(.caption2)
@@ -236,11 +244,14 @@ private struct EnGardeStepTutorialScaffold: View {
                 .foregroundStyle(.green)
 
             ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.black.opacity(0.28))
+
                 ResourceImageView(name: correctImageName)
-                    .scaledToFill()
+                    .scaledToFit()
                     .frame(height: 150)
                     .frame(maxWidth: .infinity)
-                    .clipped()
+                    .padding(6)
 
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .strokeBorder(.green.opacity(0.75), lineWidth: 1.2)
